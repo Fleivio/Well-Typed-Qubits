@@ -1,0 +1,52 @@
+cabal-version:      3.0
+
+name:               qType
+
+version:            0.1.0.0
+
+author:             Flávio Borin Júnior
+
+maintainer:         flavioborinjunior@gmail.com
+
+build-type:         Simple
+
+
+common warnings
+    ghc-options: -Wall
+
+library quantum
+    import:           warnings
+
+    exposed-modules: Quant
+
+    default-extensions:
+        DataKinds, ConstraintKinds, TypeApplications, GADTs, AllowAmbiguousTypes,
+        TypeFamilies, UndecidableInstances, TypeFamilies, RankNTypes, TypeOperators, 
+        StandaloneKindSignatures, FlexibleInstances, ScopedTypeVariables, FlexibleContexts,
+        LambdaCase, MultiParamTypeClasses, PolyKinds, OverloadedLabels, InstanceSigs, TemplateHaskell
+        , QuasiQuotes
+
+    other-modules:
+
+    build-depends:   
+        base ^>=4.19.1.0,
+        containers,
+        random,
+        template-haskell,
+        first-class-families,
+        mtl
+
+    default-language: Haskell2010
+
+    hs-source-dirs: src/Quant
+
+executable qType
+    import:           warnings
+
+    main-is:          Main.hs
+
+    build-depends:    base ^>=4.19.1.0, quantum
+
+    hs-source-dirs:   app
+
+    default-language: Haskell2010
