@@ -1,9 +1,10 @@
 module Core.QV
-  ( QV
+  ( QV(..)
   , getProb
   , mkQV
   , norm
   , normalize
+  , observeV
   , module Core.PA
   , module Core.Basis
   ) where
@@ -12,6 +13,7 @@ import           Core.Basis
 import           Core.PA
 import           Data.List
 import           Data.Map    as Map
+import           System.Random (Random (randomR), getStdRandom)
 
 data QV a = QV
   {
@@ -52,3 +54,13 @@ normalize :: QV a -> QV a
 normalize (QV l qval) = QV l $ (c *) `Map.map` qval
   where
     c = 1 / norm (QV l qval) :+ 0
+
+observeV :: Basis a => QV a -> IO [a]
+observeV v = do
+  let nv = normalize v
+      probs = squareModulus . getProb nv <$> basis (qvSize v)
+  r <- getStdRandom $ randomR (0.0, 1.0)
+  let accumulatedProbs = zip (scanl1 (+) probs) (basis (qvSize v))
+      Just (_, res) = find ((r <) . fst) accumulatedProbs
+        -- never yields Nothing due to normalization
+  return res

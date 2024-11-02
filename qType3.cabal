@@ -31,6 +31,7 @@ library quantum
         Core.Basis
         Core.QV
         Core.OP
+        Core.QR
         
         List.NList
         List.SList
