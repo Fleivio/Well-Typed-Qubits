@@ -27,6 +27,13 @@ library quantum
         , QuasiQuotes
 
     other-modules:
+        Core.Bit
+        Core.Basis
+        Core.QV
+        Core.OP
+        
+        List.NList
+        List.SList
 
     build-depends:   
         base ^>=4.19.1.0,
