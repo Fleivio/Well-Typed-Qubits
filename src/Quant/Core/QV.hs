@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -Wno-x-partial #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+
 module Core.QV
   ( QV(..)
   , getProb
@@ -42,8 +45,6 @@ instance Show a => Show (QV a) where
         $ case pa of
             0 -> mempty
             _ -> showPAMultiplicative pa ++ showKet a
-    where
-
 
 showKet :: Show a => [a] -> String
 showKet as = "|" ++ go as ++ "⟩"

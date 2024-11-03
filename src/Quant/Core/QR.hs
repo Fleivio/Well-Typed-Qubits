@@ -12,7 +12,6 @@ module Core.QR
 import Core.OP
 
 import Data.IORef
-import Control.Monad
 
 newtype QR a =
   QR (IORef (QV a))

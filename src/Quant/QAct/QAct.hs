@@ -54,8 +54,3 @@ measure :: (KnownNat ix, Basis b, ValidSelector '[ix] n) => SNat ix -> QAct b n 
 measure sn = do
   virt <- ask
   lift $ measureV virt (fromIntegral $ natVal sn)
-
--- getCurrentIndexes :: QAct' acs t [Int]
--- getCurrentIndexes = do
---   Virt _ acs <- ask
---   return $ unsafeCoerce acs

@@ -1,7 +1,6 @@
 module List.SList(
   SList(..)
   , sListToList
-  , SNat(..)
   , Length
   , module GHC.TypeLits
   , ValidSelector) where
@@ -9,7 +8,6 @@ module List.SList(
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
-import Data.Proxy
 import Fcf hiding (Length, type(+))
 
 type SList :: [Natural] -> Type

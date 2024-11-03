@@ -1,8 +1,8 @@
-module Demos(adder, deutsch) where
+module Demos(adder, deutsch, teleport) where
 
 import QAct.QBitAct
 import List.Quoter
-import List.OvLabel
+import List.OvLabel ()
 
 adder :: QBitAct 4 ()
 adder = do

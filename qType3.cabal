@@ -28,6 +28,7 @@ library quantum
 
     other-modules:
         Core.Bit
+        Core.PA
         Core.Basis
         Core.QV
         Core.OP
