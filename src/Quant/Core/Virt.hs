@@ -33,7 +33,7 @@ printQ (Virt qr _) = do
   printQR qr
 
 selectQ ::
-  forall nacs n a. ValidSelector nacs n => SList nacs -> Virt a n -> Virt a (Length nacs)
+  forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
 selectQ sl (Virt qr acs) = Virt qr (((acs !!) . pred) <$> sListToList sl)
 
 measureV ::
@@ -42,7 +42,7 @@ measureV ::
 measureV (Virt qr acs) ix = observeQR qr (acs !! ix - 1)
 
 appV ::
-     forall a s. Basis a => Show a 
+     forall a s. Basis a
   => OP a -> Virt a s -> IO ()
 appV f' (Virt (QR ptr) acs) = do
   qv <- readIORef ptr

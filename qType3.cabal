@@ -36,6 +36,13 @@ library quantum
         
         List.NList
         List.SList
+        List.OvLabel
+        List.Quoter
+
+        QAct.QAct
+        QAct.QBitAct
+
+        Demos
 
     build-depends:   
         base ^>=4.19.1.0,
