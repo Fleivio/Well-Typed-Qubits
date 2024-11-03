@@ -14,7 +14,6 @@ import Core.QR
 
 import Data.IORef
 import Data.Kind
-import GHC.TypeLits
 import Data.Proxy
 import Unsafe.Coerce
 import qualified Data.List as List
@@ -30,11 +29,11 @@ mkQ list = do
   return $ Virt qr [1..fromIntegral $ natVal (Proxy @s)]
 
 printQ :: Show a => Virt a acs -> IO ()
-printQ (Virt qr l) = do
+printQ (Virt qr _) = do
   printQR qr
 
 selectQ ::
-  forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
+  forall nacs n a. ValidSelector nacs n => SList nacs -> Virt a n -> Virt a (Length nacs)
 selectQ sl (Virt qr acs) = Virt qr (((acs !!) . pred) <$> sListToList sl)
 
 measureV ::
