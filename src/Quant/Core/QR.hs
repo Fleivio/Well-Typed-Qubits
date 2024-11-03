@@ -9,8 +9,9 @@ module Core.QR
   , observeQR
   ) where
 
-import Data.IORef
 import Core.OP
+
+import Data.IORef
 import Control.Monad
 
 newtype QR a =

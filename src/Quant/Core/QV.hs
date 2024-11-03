@@ -5,15 +5,18 @@ module Core.QV
   , norm
   , normalize
   , observeV
+  , showBra
+  , showKet
   , module Core.PA
   , module Core.Basis
   ) where
 
-import           Core.Basis
-import           Core.PA
-import           Data.List
-import           Data.Map    as Map
-import           System.Random (Random (randomR), getStdRandom)
+import Core.Basis
+import Core.PA
+
+import Data.List
+import Data.Map as Map
+import System.Random (Random (randomR), getStdRandom)
 
 data QV a = QV
   {
@@ -38,7 +41,21 @@ instance Show a => Show (QV a) where
       return
         $ case pa of
             0 -> mempty
-            _ -> showPAMultiplicative pa ++ show a
+            _ -> showPAMultiplicative pa ++ showKet a
+    where
+
+
+showKet :: Show a => [a] -> String
+showKet as = "|" ++ go as ++ "⟩"
+  where 
+    go []      = ""
+    go (x:xs) = show x ++ go xs
+
+showBra :: Show a => [a] -> String
+showBra as = "⟨" ++ go as ++ "|"
+  where 
+    go []      = ""
+    go (x:xs) = show x ++ go xs
 
 
 mkQV :: Basis a => [([a], PA)] -> QV a

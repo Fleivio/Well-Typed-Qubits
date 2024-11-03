@@ -7,9 +7,10 @@ module Core.OP
   , _h
   ) where
 
-import           Data.List
-import           Data.Map    as Map
-import           Core.QV
+import Core.QV
+
+import Data.List
+import Data.Map as Map
 
 data OP a = OP {
     opSize :: Int,
@@ -20,20 +21,23 @@ instance Show a => Show (OP a) where
   show (OP _ qop) =
     intercalate "\n" $ do
       ((a, b), pa) <- toList qop
-      return $ show pa ++ "|" ++ show a ++ "⟩⟨" ++ show b ++ "|"
+      return $ show pa ++ showKet a ++ showBra b
 
 getOpProb :: Ord a => OP a -> ([a], [a]) -> PA
 getOpProb (OP _ qmap) index = Map.findWithDefault 0 index qmap
 
 mkOP :: Ord a => [(([a], [a]), PA)] -> OP a
-mkOP l = OP (length $ fst $ head l) (fromList l)
+mkOP l = OP (length $ fst $ fst $ head l) (fromList l)
 
 appOP ::
      (Ord a, Basis a)
   => OP a
   -> QV a
   -> QV a
-appOP qop qv = mkQV [(b, prob b) | b <- basis (opSize qop)]
+appOP qop qv = 
+  if (opSize qop /= qvSize qv)
+    then error "Dimension mismatch"
+    else mkQV [(b, prob b) | b <- basis (opSize qop)]
   where
     prob b = sum [qop `getOpProb` (a, b) * qv `getProb` a | a <- basis (opSize qop)]
 

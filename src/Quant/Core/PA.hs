@@ -6,8 +6,8 @@ module Core.PA
   , module Data.Complex
   ) where
 
-import           Data.Complex (Complex (..), imagPart, magnitude, realPart)
-import           Text.Printf
+import Data.Complex (Complex (..), imagPart, magnitude, realPart)
+import Text.Printf
 
 type PA = Complex Double
 
