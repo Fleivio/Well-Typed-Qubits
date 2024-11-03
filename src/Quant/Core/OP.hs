@@ -6,7 +6,6 @@ module Core.OP
   , getOpProb
   , OP(..)
   , module Core.QV
-  , _h
   ) where
 
 import Core.QV
@@ -36,17 +35,14 @@ appOP ::
   => OP a
   -> QV a
   -> QV a
-appOP qop qv = 
-  if (opSize qop /= qvSize qv)
+appOP qop qv =
+  if opSize qop /= qvSize qv
     then error "Dimension mismatch"
     else mkQV [(b, prob b) | b <- basis (opSize qop)]
   where
     prob b = sum [qop `getOpProb` (a, b) * qv `getProb` a | a <- basis (opSize qop)]
 
-_h :: OP Bit
-_h = mkOP [
-      (([O], [O]), 1 :+ 0),
-      (([O], [I]), 1 :+ 0),
-      (([I], [O]), 1 :+ 0),
-      (([I], [I]), (-1) :+ 0)
-    ]
+instance Ord a => Semigroup (OP a) where
+  OP _ m1 <> OP _ m2 = mkOP 
+    [((a1 ++ b1, a2 ++ b2), pa1 * pa2) 
+    | ((a1, a2), pa1) <- toList m1, ((b1, b2), pa2) <- toList m2]
