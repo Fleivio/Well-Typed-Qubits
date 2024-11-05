@@ -4,15 +4,15 @@ module List.SList(
   , Length
   , module GHC.TypeLits
   , qb
+  , upTo, Count
   , ValidSelector) where
 
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
-import Fcf hiding (Length, type(+), Exp)
+import Fcf hiding (Length, type(+), type(-), Exp)
 import Language.Haskell.TH hiding (Type)
 import Language.Haskell.TH.Quote
-
 
 type SList :: [Natural] -> Type
 data SList as where
@@ -23,10 +23,17 @@ infixr 5 :-
 sListToList :: SList as -> [Int]
 sListToList = unsafeCoerce
 
+upTo :: forall n. KnownNat n => SNat n -> SList (Count n)
+upTo sn = unsafeCoerce [1..fromIntegral $ natVal sn]
+
+type Count :: Nat -> [Nat]
+type family Count n where
+  Count 0 = '[]
+  Count n = n ': Count (n - 1)
+
 type family Length (as :: [k]) :: Nat where
   Length '[] = 0
   Length (a ': as) = 1 + Length as
-
 
 type Elem :: Natural -> [Natural] -> Bool
 type family Elem a as

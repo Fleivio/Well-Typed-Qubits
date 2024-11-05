@@ -5,7 +5,7 @@ import List.OvLabel ()
 
 adder :: QBitAct 4 ()
 adder = do
-  app [qb|1 2 4|] toffoli
+  app [qb|1 2 6|] toffoli
   app [qb|1 2|]   cnot
   app [qb|2 3 4|] toffoli
   app [qb|2 3|]   cnot

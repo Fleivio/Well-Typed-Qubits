@@ -7,6 +7,7 @@ module QAct.QAct
   , sample
   , measure
   , liftIO
+  , mapp
   , module Core.Virt
   , module List.NList
   , module List.SList
@@ -54,7 +55,6 @@ mapp acs act = go acs act
     go :: Show b => SList acs -> QAct b 1 () -> QAct b n ()
     go SNil act = return ()
     go (x :- xs) act = do
-      sample
       qv <- ask
       let adaptedValue = selectQ (x :- SNil) qv
       lift $ runReaderT act adaptedValue
