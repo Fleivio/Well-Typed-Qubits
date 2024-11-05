@@ -3,12 +3,16 @@ module List.SList(
   , sListToList
   , Length
   , module GHC.TypeLits
+  , qb
   , ValidSelector) where
 
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
-import Fcf hiding (Length, type(+))
+import Fcf hiding (Length, type(+), Exp)
+import Language.Haskell.TH hiding (Type)
+import Language.Haskell.TH.Quote
+
 
 type SList :: [Natural] -> Type
 data SList as where
@@ -83,3 +87,24 @@ type NoZeroCheck xs
 type ValidSelector :: [Natural] -> Natural -> Constraint
 type ValidSelector xs n 
   = (BoundCheck n xs, NoCloningCheck xs, NoZeroCheck xs)
+
+---------------------------------------
+
+qb :: QuasiQuoter
+qb = QuasiQuoter
+  { quoteExp  = slistExp
+  , quotePat  = undefined
+  , quoteType = undefined
+  , quoteDec  = undefined
+  }
+
+slistExp :: String -> Q Exp
+slistExp str = do
+  let nums = words str
+  buildSList nums
+
+buildSList :: [String] -> Q Exp
+buildSList []     = [| SNil |]
+buildSList (x:xs) = do
+  let n = read x :: Integer
+  [| SNat @($(litT (numTyLit n))) :- $(buildSList xs) |]

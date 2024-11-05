@@ -2,7 +2,6 @@ module Quant(a) where
 
 import QAct.QBitAct
 import Demos
-import List.Quoter
 
 test :: QBitAct 3 ()
 test = do

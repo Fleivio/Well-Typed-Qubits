@@ -1,7 +1,6 @@
 module Demos(adder, deutsch, teleport) where
 
 import QAct.QBitAct
-import List.Quoter
 import List.OvLabel ()
 
 adder :: QBitAct 4 ()
