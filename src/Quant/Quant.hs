@@ -5,15 +5,13 @@ import Demos
 
 test :: QBitAct 3 ()
 test = do
-  sample
-  app [qb|1 2|] entangle
-  sample
-  b <- measure #1
-  liftIO $ print b
+  app (#1 :- SNil) h
+  app (#3 :- SNil) h
   sample
 
 a :: IO ()
 a = do 
-  val <- mkQ [(O:>O:>O:>NNil, 1), (I:>O:>O:>NNil, 1)]
-  runQ teleport val
+  print "-----------------"
+  val <- mkQ [(O:>O:>O:>NNil, 1)]
+  runQ test val
   printQ val

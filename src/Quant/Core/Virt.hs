@@ -5,8 +5,7 @@ module Core.Virt
   , printQ
   , selectQ
   , appV
-  , measureV
-  ) where
+  , measureV) where
 
 import List.NList
 import List.SList
@@ -16,7 +15,8 @@ import Data.IORef
 import Data.Kind
 import Data.Proxy
 import Unsafe.Coerce
-import qualified Data.List as List
+import Debug.Trace
+import Data.List ((\\))
 
 type Virt :: Type -> Natural -> Type
 
@@ -61,9 +61,10 @@ appV f' (Virt (QR ptr) acs) = do
         , na == nb
         ]
 
-    decompose :: Eq a => [Int] -> [a] -> ([a], [a])
-    decompose acs' as = 
-      let 
-        selected = [as !! pred i | i <- acs']
-        rest = as List.\\ selected
-      in (selected, rest)
+decompose :: Eq a => [Int] -> [a] -> ([a], [a])
+decompose acs' as = 
+  let 
+    asZ = zip [1..] as 
+    selected = [asZ !! pred i | i <- acs']
+    rest = asZ \\ selected
+  in (snd <$> selected, snd <$> rest)

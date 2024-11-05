@@ -5,6 +5,7 @@ module Core.OP
   , appOP
   , getOpProb
   , OP(..)
+  , _h
   , module Core.QV
   ) where
 
@@ -46,3 +47,6 @@ instance Ord a => Semigroup (OP a) where
   OP _ m1 <> OP _ m2 = mkOP 
     [((a1 ++ b1, a2 ++ b2), pa1 * pa2) 
     | ((a1, a2), pa1) <- toList m1, ((b1, b2), pa2) <- toList m2]
+
+_h :: OP Bit
+_h = mkOP [(([O],[O]),1),(([O],[I]),1),(([I],[O]),1),(([I],[I]),-1)]

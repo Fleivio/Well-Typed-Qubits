@@ -45,6 +45,22 @@ app sl act = do
   let adaptedValue = selectQ sl qv
   lift $ runReaderT act adaptedValue
 
+mapp :: Show b => ValidSelector acs n
+  => SList acs
+  -> QAct b 1 ()
+  -> QAct b n ()
+mapp acs act = go acs act
+  where 
+    go :: Show b => SList acs -> QAct b 1 () -> QAct b n ()
+    go SNil act = return ()
+    go (x :- xs) act = do
+      sample
+      qv <- ask
+      let adaptedValue = selectQ (x :- SNil) qv
+      lift $ runReaderT act adaptedValue
+      lift $ runReaderT (go xs act) qv
+
+
 sample :: Show b => QAct b s () 
 sample = do
   virt <- ask
