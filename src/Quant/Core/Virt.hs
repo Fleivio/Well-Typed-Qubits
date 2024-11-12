@@ -15,7 +15,6 @@ import Data.IORef
 import Data.Kind
 import Data.Proxy
 import Unsafe.Coerce
-import Debug.Trace
 import Data.List ((\\))
 
 type Virt :: Type -> Natural -> Type
@@ -64,7 +63,7 @@ appV f' (Virt (QR ptr) acs) = do
 decompose :: Eq a => [Int] -> [a] -> ([a], [a])
 decompose acs' as = 
   let 
-    asZ = zip [1..] as 
+    asZ = zip [(1 :: Int)..] as 
     selected = [asZ !! pred i | i <- acs']
     rest = asZ \\ selected
   in (snd <$> selected, snd <$> rest)
