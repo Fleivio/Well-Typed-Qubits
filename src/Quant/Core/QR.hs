@@ -1,6 +1,5 @@
 module Core.QR
-  ( mkQR
-  , QR(..)
+  ( QR(..)
   , qrApp
   , printQR
   , showQR
@@ -13,32 +12,27 @@ import Core.OP
 
 import Data.IORef
 
-newtype QR a =
-  QR (IORef (QV a))
-
-mkQR :: QV a -> IO (QR a)
-mkQR qv = QR <$> newIORef qv
+type QR a = (IORef (QV a))
 
 qrFromList :: Basis a => [([a], PA)] -> IO (QR a)
-qrFromList lst = mkQR $ mkQV lst
+qrFromList lst = newIORef $ mkQV lst
 
 qrApp :: Basis a => Ord a => OP a -> QR a -> IO ()
-qrApp op (QR ref) = modifyIORef ref (appOP op)
+qrApp op ref = modifyIORef ref (appOP op)
 
 showQR :: Show a => QR a -> IO String
-showQR (QR ref) = do
+showQR ref = do
   qval <- readIORef ref
   return $ show qval
 
 printQR :: Show a => QR a -> IO ()
-printQR (QR ref) = do
+printQR ref = do
   qval <- readIORef ref
   putStrLn $ show qval
 
 observeQR :: Basis a => QR a -> Int -> IO a 
-observeQR (QR ptr) ix = do
-  qVal <- readIORef ptr
-
+observeQR ref ix = do
+  qVal <- readIORef ref
   let 
     wholeSize = qvSize qVal
     prob' a =
@@ -50,17 +44,13 @@ observeQR (QR ptr) ix = do
             , right <- basis (wholeSize - ix)
             ]
     auxQval = mkQV [(a, prob' a) | a <- basis 1]
-
-  if (ix <= 0 || ix > wholeSize) -- tirar isso daqui depois
-    then error "Index out of bounds"
-  else do
-    [obsRes] <- observeV auxQval
-    let 
-      newVal =
-        mkQV [( left ++ [obsRes] ++ right
-                , getProb qVal (left ++ [obsRes] ++ right))
-              | left <- basis (ix - 1)
-              , right <- basis (wholeSize - ix)
-              ] 
-    writeIORef ptr (normalize newVal)
-    return obsRes
+  [obsRes] <- observeV auxQval
+  let
+    newVal =
+      mkQV [( left ++ [obsRes] ++ right
+              , getProb qVal (left ++ [obsRes] ++ right))
+            | left <- basis (ix - 1)
+            , right <- basis (wholeSize - ix)
+            ] 
+  writeIORef ref (normalize newVal)
+  return obsRes

@@ -12,6 +12,6 @@ test = do
 a :: IO ()
 a = do 
   print "-----------------"
-  val <- mkQ [(O:>O:>O:>NNil, 1)]
-  runQ test val
+  val <- mkQ [(I:>O:>I:>O:>NNil, 1)]
+  runQ adder val
   printQ val

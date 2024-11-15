@@ -43,12 +43,12 @@ measureV (Virt qr acs) ix = observeQR qr (acs !! ix - 1)
 appV ::
      forall a s. Basis a
   => OP a -> Virt a s -> IO ()
-appV f' (Virt (QR ptr) acs) = do
-  qv <- readIORef ptr
+appV f' (Virt ref acs) = do
+  qv <- readIORef ref
   let 
     op = gf $ qvSize qv
     fqv = appOP op qv
-  writeIORef ptr fqv
+  writeIORef ref fqv
   where
     gf s =
       mkOP

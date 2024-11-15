@@ -32,14 +32,11 @@ mkOP :: Ord a => [(([a], [a]), PA)] -> OP a
 mkOP l = OP (length $ fst $ fst $ head l) (fromList l)
 
 appOP ::
-     (Ord a, Basis a)
+     Basis a
   => OP a
   -> QV a
   -> QV a
-appOP qop qv =
-  if opSize qop /= qvSize qv
-    then error "Dimension mismatch"
-    else mkQV [(b, prob b) | b <- basis (opSize qop)]
+appOP qop qv = mkQV [(b, prob b) | b <- basis (opSize qop)]
   where
     prob b = sum [qop `getOpProb` (a, b) * qv `getProb` a | a <- basis (opSize qop)]
 
