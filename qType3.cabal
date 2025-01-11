@@ -42,6 +42,7 @@ library quantum
         QAct.QAct
         QAct.QBitAct
 
+        Test
         Demos
 
     build-depends:   

@@ -9,7 +9,7 @@ module List.SList(
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
-import Fcf hiding (Length, type(+), Exp)
+import Fcf (If)
 import Language.Haskell.TH hiding (Type)
 import Language.Haskell.TH.Quote
 
@@ -27,7 +27,6 @@ type family Length (as :: [k]) :: Nat where
   Length '[] = 0
   Length (a ': as) = 1 + Length as
 
-
 type Elem :: Natural -> [Natural] -> Bool
 type family Elem a as
  where
@@ -35,11 +34,11 @@ type family Elem a as
   Elem a (a ': as) = 'True
   Elem a (b ': as) = Elem a as
 
-type HasRepetition :: [Natural] -> Bool
-type family HasRepetition xs
+type HasDupl :: [Natural] -> Bool
+type family HasDupl xs
  where
-  HasRepetition '[] = 'False
-  HasRepetition (x ': xs) = If (Elem x xs) 'True (HasRepetition xs)
+  HasDupl '[] = 'False
+  HasDupl (x ': xs) = If (Elem x xs) 'True (HasDupl xs)
 
 type Maximum :: [Natural] -> Natural
 type family Maximum a
@@ -66,7 +65,7 @@ type BoundCheck n xs
 
 type NoCloningCheck :: [Natural] -> Constraint
 type NoCloningCheck xs
-  = If (HasRepetition xs)
+  = If (HasDupl xs)
     (TypeError (
         Text "No Cloning Theorem Violation" 
         :$$: 
