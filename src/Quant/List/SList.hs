@@ -12,6 +12,7 @@ import Unsafe.Coerce
 import Fcf (If)
 import Language.Haskell.TH hiding (Type)
 import Language.Haskell.TH.Quote
+import Data.Char (isNumber)
 
 
 type SList :: [Natural] -> Type
@@ -104,6 +105,9 @@ slistExp str = do
 
 buildSList :: [String] -> Q Exp
 buildSList []     = [| SNil |]
-buildSList (x:xs) = do
-  let n = read x :: Integer
-  [| SNat @($(litT (numTyLit n))) :- $(buildSList xs) |]
+buildSList (x:xs)
+  | all isNumber x = do
+    let n = read x :: Integer
+    [| SNat @($(litT (numTyLit n))) :- $(buildSList xs) |]
+  | otherwise = [| ($(varE (mkName x))) :- $(buildSList xs) |] 
+

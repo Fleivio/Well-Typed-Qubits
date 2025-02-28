@@ -5,11 +5,16 @@ import List.OvLabel ()
 
 adder :: QBitAct 4 ()
 adder = do
-  app [qb|1 2 4|] toffoli
-  app [qb|1 2|]   cnot
-  app [qb|2 3 4|] toffoli
-  app [qb|2 3|]   cnot
-  app [qb|1 2|]   cnot
+  let a = #1
+      b = #2
+      cIn = #3
+      cOut = #4
+
+  app [qb|a b cOut|]   toffoli
+  app [qb|a b|]        cnot
+  app [qb|b cIn cOut|] toffoli
+  app [qb|b cIn|]      cnot
+  app [qb|a b|]        cnot
 
 deutsch :: QBitAct 2 () -> QBitAct 2 ()
 deutsch uf = do
