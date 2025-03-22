@@ -41,7 +41,7 @@ app ::
   -> QAct b n a
 app sl act = do
   qv <- ask
-  let adaptedValue = selectQ sl qv
+  let adaptedValue = unsafeSelectQ sl qv
   lift $ runReaderT act adaptedValue
 
 sample :: Show b => QAct b s () 

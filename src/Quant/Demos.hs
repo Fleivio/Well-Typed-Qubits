@@ -37,8 +37,6 @@ teleport = do
   app (#2 :- #3 :- SNil) cnot
   app (#1 :- #3 :- SNil) cz
 
--- grover :: forall n. (KnwonNat n, 2 <= n) => QBitAct n ()
-
 {-
 errorExample :: QBitAct 4 ()
 errorExample = do

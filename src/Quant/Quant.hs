@@ -1,4 +1,4 @@
-module Quant(a) where
+module Quant(addTest, test, hiperEntangle) where
 
 import QAct.QBitAct
 import Demos
@@ -16,9 +16,9 @@ hiperEntangle = do
   app (SNat @2 :- SNat @3 :- SNil) entangle
   sample
 
-a :: IO ()
-a = do 
+addTest :: IO ()
+addTest = do 
   print "-----------------"
-  val <- mkQ [(I:>O:>I:>O:>NNil, 1)]
+  val <- mkQ [(I:>O:>O:>O:>NNil, 1)]
   runQ adder val
   printQ val

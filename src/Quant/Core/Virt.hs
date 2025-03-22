@@ -3,7 +3,7 @@ module Core.Virt
   , module Core.QR
   , mkQ
   , printQ
-  , selectQ
+  , unsafeSelectQ
   , appV
   , measureV) where
 
@@ -31,9 +31,9 @@ printQ :: Show a => Virt a acs -> IO ()
 printQ (Virt qr _) = do
   printQR qr
 
-selectQ ::
+unsafeSelectQ ::
   forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
-selectQ sl (Virt qr acs) = Virt qr (((acs !!) . pred) <$> sListToList sl)
+unsafeSelectQ sl (Virt qr acs) = Virt qr (((acs !!) . pred) <$> sListToList sl)
 
 measureV ::
     forall a s. Basis a
