@@ -60,7 +60,7 @@ showBra as = "⟨" ++ go as ++ "|"
 
 
 mkQV :: Basis a => [([a], PA)] -> QV a
-mkQV vals = normalize $ QV (length (fst $ head vals)) (k vals) 
+mkQV vals = QV (length (fst $ head vals)) (k vals) 
   where k = Map.fromList . Prelude.filter ((/= 0) . snd)
 
 norm :: QV a -> Double

@@ -7,6 +7,7 @@ module QAct.QAct
   , sample
   , measure
   , liftIO
+  , (<#>)
   , module Core.Virt
   , module List.NList
   , module List.SList
@@ -32,7 +33,7 @@ qActMatrix :: Basis b => Matrix b s -> QAct b s ()
 qActMatrix mat = do
   let op = mkOP $ unsafeCoerce mat
   vv <- ask
-  lift $ appV op vv
+  liftIO $ appV op vv
 
 app ::
      ValidSelector acs n
@@ -42,14 +43,20 @@ app ::
 app sl act = do
   qv <- ask
   let adaptedValue = unsafeSelectQ sl qv
-  lift $ runReaderT act adaptedValue
+  liftIO $ runReaderT act adaptedValue
 
 sample :: Show b => QAct b s () 
 sample = do
   virt <- ask
-  lift $ printQ virt
+  liftIO $ printQ virt
 
 measure :: (KnownNat ix, Basis b, ValidSelector '[ix] n) => SNat ix -> QAct b n b
 measure sn = do
   virt <- ask
-  lift $ measureV virt (fromIntegral $ natVal sn)
+  liftIO $ measureV virt (fromIntegral $ natVal sn)
+
+(<#>) :: QAct b s a1 -> QAct b s a2 -> QAct b s a2
+op1 <#> op2 = do
+  qv <- ask
+  _ <- liftIO $ runReaderT op1 qv
+  liftIO $ runReaderT op2 qv

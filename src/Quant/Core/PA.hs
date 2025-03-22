@@ -13,9 +13,9 @@ type PA = Complex Double
 
 showPA :: PA -> String
 showPA pa
-  | imagPart pa < 0 = printf "(%.1f %.1f⋅i)" (realPart pa) (imagPart pa)
-  | imagPart pa > 0 = printf "(%.1f + %.1f⋅i)" (realPart pa) (imagPart pa)
-  | otherwise       = printf "%.1f" (realPart pa)
+  | imagPart pa < 0 = printf "(%.2f %.2f⋅i)" (realPart pa) (imagPart pa)
+  | imagPart pa > 0 = printf "(%.2f + %.2f⋅i)" (realPart pa) (imagPart pa)
+  | otherwise       = printf "%.2f" (realPart pa)
 
 showPAMultiplicative :: PA -> String
 showPAMultiplicative pa =

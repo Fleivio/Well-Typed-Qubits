@@ -1,7 +1,10 @@
-module Demos(adder, deutsch, teleport) where
+module Demos(adder, deutsch, teleport, sqrtNot) where
 
 import QAct.QBitAct
 import List.OvLabel ()
+
+sqrtNot :: QBitAct 1 ()
+sqrtNot = h <#> s <#> h
 
 adder :: QBitAct 4 ()
 adder = do

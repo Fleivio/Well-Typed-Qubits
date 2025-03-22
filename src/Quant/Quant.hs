@@ -1,13 +1,19 @@
-module Quant(addTest, test, hiperEntangle) where
+module Quant(addTest, haddamardTest, hiperEntangle, NList(..)) where
 
 import QAct.QBitAct
 import Demos
 
-test :: QBitAct 3 ()
-test = do
-  app (#1 :- SNil) h
-  app (#3 :- SNil) h
-  sample
+haddamardTest :: IO ()
+haddamardTest = do
+  print "-----------------"
+  val <- mkQ [(I:>O:>O:>O:>NNil, 1)]
+
+  runQ
+    (do
+      app (#1 :- SNil) h
+      app (#3 :- SNil) h)
+    val
+  printQ val
 
 hiperEntangle :: QBitAct 3 ()
 hiperEntangle = do

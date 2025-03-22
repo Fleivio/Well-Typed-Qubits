@@ -21,10 +21,10 @@ type QBitAct s a = QAct Bit s a
 
 h :: QBitAct 1 ()
 h = qActMatrix [
-      ((O:>NNil, O:>NNil), 1),
-      ((O:>NNil, I:>NNil), 1),
-      ((I:>NNil, O:>NNil), 1),
-      ((I:>NNil, I:>NNil), -1)
+      ((O:>NNil, O:>NNil), recip $ sqrt 2),
+      ((O:>NNil, I:>NNil), recip $ sqrt 2),
+      ((I:>NNil, O:>NNil), recip $ sqrt 2),
+      ((I:>NNil, I:>NNil), -(recip $ sqrt 2))
     ]
 
 -- h1 :: QBitAct 1 ()
@@ -47,18 +47,27 @@ y = qActMatrix [
 
 p :: Double -> QBitAct 1 ()
 p l = qActMatrix [
-      ((O:>NNil, O:>NNil), 1 ),
-      ((I:>NNil, I:>NNil), exp (0 :+ (pi*l)))
+      ((O:>NNil, O:>NNil), 1),
+      ((I:>NNil, I:>NNil), exp (0 :+ l))
     ]
 
 z :: QBitAct 1 ()
-z = p pi
+z = qActMatrix [
+      ((O:>NNil, O:>NNil), 1),
+      ((I:>NNil, I:>NNil), -1)
+    ]
 
 s :: QBitAct 1 ()
-s = p (pi/2)
+s = qActMatrix [
+      ((O:>NNil, O:>NNil), 1),
+      ((I:>NNil, I:>NNil), 0 :+ 1)
+    ]
 
 t :: QBitAct 1 ()
-t = p (pi/4)
+t = qActMatrix [
+      ((O:>NNil, O:>NNil), 1),
+      ((I:>NNil, I:>NNil), (1 :+ 1)/sqrt 2)
+    ]
 
 cnot :: QBitAct 2 ()
 cnot = qActMatrix [
