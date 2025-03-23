@@ -9,7 +9,7 @@ sqrtNot = h >> s >> h
 testSqrtNot :: IO ()
 testSqrtNot = do
     putStrLn "\n\n----Test sqrtNot----"
-    mem <- mkQ [(O:>NNil, 1)]
+    mem <- [mkq|O|]
     runQ (sample >> sqrtNot >> sample >> sqrtNot >> sample) mem
 
 ------------------------------------------------------------------
@@ -50,7 +50,7 @@ deutsch uf = do
   mapp [qb|1 2|] h
   eff <- app [qb|1 2|] uf
   app [qb|1|]    h
-  (val:>NNil) <- measureN [qb|1|]
+  [nl|val|] <- measureN [qb|1|]
   case val of
     O -> liftIO $ print "f is constant" >> return eff
     I -> liftIO $ print "f is balanced" >> return eff
@@ -58,11 +58,11 @@ deutsch uf = do
 testDeutsch :: IO ()
 testDeutsch = do
     putStrLn "\n\n----Deutsch test----"
-    mem <- mkQ [(O:>O:>NNil, 1)]
+    mem <- [mkq|O O|]
     putStrLn "i. CNot:"
     runQ (deutsch cnot) mem
 
-    mem2 <- mkQ [(O:>O:>NNil, 1)]
+    mem2 <- [mkq|O O|]
     putStrLn "ii. Const O:"
     runQ (deutsch $ app [qb|2|] (toState O)) mem2
     return ()
@@ -76,7 +76,7 @@ teleport = do
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot
   app [qb|1|] h
-  (control1:>control2:>NNil) <- measureNBool [qb|1 2|]
+  [nl|control1 control2|] <- measureNBool [qb|1 2|]
   when control1 $ app [qb|3|] x
   when control2 $ app [qb|3|] z
 
@@ -123,7 +123,7 @@ grover oracle = do
 
 testGrover :: IO ()
 testGrover = do
-  a <- mkQ [(O:>O:>O:>NNil, 1)]
+  a <- [mkq|O O O|]
   runQ (grover oracle111) a
 
 ------------------------------------------------------------------
@@ -154,5 +154,5 @@ main :: IO ()
 main = do
     testGrover
     -- testSqrtNot
-    -- testDeutsch
+    testDeutsch
     -- testAdder

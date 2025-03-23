@@ -6,3 +6,4 @@
 - [ ] Implement writer monad to allow history tracking of operations.
 - [ ] Implement a quantum circuit visualizer.
 - [ ] Quotes for NList.
+- [ ] Quotes for Matrix.

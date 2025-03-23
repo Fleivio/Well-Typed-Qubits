@@ -24,7 +24,7 @@ library quantum
         TypeFamilies, UndecidableInstances, TypeFamilies, RankNTypes, TypeOperators, 
         StandaloneKindSignatures, FlexibleInstances, ScopedTypeVariables, FlexibleContexts,
         LambdaCase, MultiParamTypeClasses, PolyKinds, OverloadedLabels, InstanceSigs, TemplateHaskell
-        , QuasiQuotes
+        , QuasiQuotes, PatternSynonyms
 
     other-modules:
         Core.Bit
@@ -43,6 +43,7 @@ library quantum
         QAct.QBitAct
 
         NoMonad
+        BitQuoter
 
     build-depends:   
         base ^>=4.19.1.0,
@@ -63,7 +64,7 @@ executable qType
 
     build-depends:    base ^>=4.19.1.0, quantum
 
-    default-extensions: OverloadedLabels, QuasiQuotes, DataKinds, TypeApplications, GADTs, TypeFamilies
+    default-extensions: OverloadedLabels, QuasiQuotes, DataKinds, TypeApplications, GADTs, TypeFamilies, PatternSynonyms
 
     hs-source-dirs:   app
 
