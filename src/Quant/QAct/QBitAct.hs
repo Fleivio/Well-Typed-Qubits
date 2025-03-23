@@ -35,12 +35,12 @@ measureNBool ks = do
   as <- measureN ks
   return $ unsafeCoerce as
 
-parallel :: ValidSelector acs n => SList acs -> QBitAct n () -> QBitAct n ()
+parallel :: ValidSelector acs n => SList acs -> QBitAct n a -> QBitAct n a
 parallel sl act = do
-  mapp sl h
-  act
-  mapp sl h
-  return ()
+  _ <- mapp sl h
+  val <- act
+  _ <- mapp sl h
+  return val
 
 toState :: Bit -> QBitAct 1 ()
 toState a = do
@@ -54,11 +54,6 @@ h = qActMatrix [
       ((I:>NNil, O:>NNil), recip $ sqrt 2),
       ((I:>NNil, I:>NNil), -(recip $ sqrt 2))
     ]
-
--- h1 :: QBitAct 1 ()
--- h1 = [matrix|
---       1, 1
---       1, -1|]
 
 x :: QBitAct 1 ()
 x = qActMatrix [
@@ -121,18 +116,6 @@ toffoli = qActMatrix [
       ((I:>I:>O:>NNil, I:>I:>I:>NNil), 1),
       ((I:>I:>I:>NNil, I:>I:>O:>NNil), 1)
     ]
-
--- toffoli1 
---   = [matrix|
---     1, 0, 0, 0, 0, 0, 0, 0;
---     0, 1, 0, 0, 0, 0, 0, 0;
---     0, 0, 1, 0, 0, 0, 0, 0;
---     0, 0, 0, 1, 0, 0, 0, 0;
---     0, 0, 0, 0, 1, 0, 0, 0;
---     0, 0, 0, 0, 0, 1, 0, 0;
---     0, 0, 0, 0, 0, 0, 0, 1;
---     0, 0, 0, 0, 0, 0, 1, 0;
---     |]
 
 cz :: QBitAct 2 ()
 cz = qActMatrix [
