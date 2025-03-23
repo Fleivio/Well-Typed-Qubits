@@ -7,10 +7,11 @@ module QAct.QAct
   , sample
   , measure
   , liftIO
-  , (<#>)
   , module Core.Virt
   , module List.NList
   , module List.SList
+  , measureN
+  , mapp
   ) where
 
 import Core.Virt
@@ -53,10 +54,17 @@ sample = do
 measure :: (KnownNat ix, Basis b, ValidSelector '[ix] n) => SNat ix -> QAct b n b
 measure sn = do
   virt <- ask
-  liftIO $ measureV virt (fromIntegral $ natVal sn)
+  liftIO $ measureVirt virt (fromIntegral $ natVal sn)
 
-(<#>) :: QAct b s a1 -> QAct b s a2 -> QAct b s a2
-op1 <#> op2 = do
+measureN :: (Basis b, ValidSelector acs n) => SList acs -> QAct b n (NList b (Length acs))
+measureN ks = do
   qv <- ask
-  _ <- liftIO $ runReaderT op1 qv
-  liftIO $ runReaderT op2 qv
+  let list = sListToList ks
+  result <- liftIO $ measureVirtN qv list
+  return $ unsafeCoerce result
+
+mapp :: ValidSelector acs n => SList acs -> QAct b 1 a -> QAct b n [a]
+mapp sl op = do
+  qv <- ask
+  let list = sListToList sl
+  liftIO $ sequence [runQ op $ unsafeCoerce (unsafeSelectQ (unsafeCoerce [ix]) qv) | ix <- list]

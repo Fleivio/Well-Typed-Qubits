@@ -5,7 +5,8 @@ module Core.Virt
   , printQ
   , unsafeSelectQ
   , appV
-  , measureV) where
+  , measureVirt
+  , measureVirtN) where
 
 import List.NList
 import List.SList
@@ -35,10 +36,16 @@ unsafeSelectQ ::
   forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
 unsafeSelectQ sl (Virt qr acs) = Virt qr (((acs !!) . pred) <$> sListToList sl)
 
-measureV ::
+measureVirt ::
     forall a s. Basis a
     => Virt a s -> Int -> IO a
-measureV (Virt qr acs) ix = observeQR qr (acs !! ix - 1)
+measureVirt (Virt qr acs) ix = observeQR qr (acs !! (ix - 1))
+
+measureVirtN :: 
+  forall a s. Basis a
+    => Virt a s -> [Int] -> IO [a]
+measureVirtN (Virt qr acs) ixs =
+  sequence $ [observeQR qr (acs !! (ix - 1)) | ix <- ixs]
 
 appV ::
      forall a s. Basis a

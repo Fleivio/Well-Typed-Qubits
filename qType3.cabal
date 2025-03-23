@@ -42,8 +42,7 @@ library quantum
         QAct.QAct
         QAct.QBitAct
 
-        Test
-        Demos
+        NoMonad
 
     build-depends:   
         base ^>=4.19.1.0,
@@ -63,6 +62,8 @@ executable qType
     main-is:          Main.hs
 
     build-depends:    base ^>=4.19.1.0, quantum
+
+    default-extensions: OverloadedLabels, QuasiQuotes, DataKinds, TypeApplications, GADTs, TypeFamilies
 
     hs-source-dirs:   app
 

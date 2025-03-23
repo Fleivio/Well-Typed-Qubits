@@ -1,4 +1,4 @@
-module Test(testNoMonad, entangleExample, adderExample) where
+module NoMonad(testNoMonad, entangleExample, adderExample) where
 
 import Core.Virt
 import List.SList

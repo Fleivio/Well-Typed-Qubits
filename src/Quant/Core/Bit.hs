@@ -1,6 +1,6 @@
 module Core.Bit(Bit(..)) where
 
-data Bit = O | I deriving (Ord)
+data Bit = O | I deriving (Ord, Read)
 
 instance Show Bit where
   show O = "0"

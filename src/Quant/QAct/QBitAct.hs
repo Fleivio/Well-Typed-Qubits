@@ -13,11 +13,39 @@ module QAct.QBitAct(
   , p
   , t
   , s
-  , toffoli) where
+  , toffoli
+  , measureBool
+  , measureNBool
+  , parallel
+  , toState) where
 
 import QAct.QAct
+import Unsafe.Coerce
+import Control.Monad
 
 type QBitAct s a = QAct Bit s a
+
+measureBool :: (KnownNat ix, ValidSelector '[ix] n) => SNat ix -> QBitAct n Bool
+measureBool k = do
+  a <-  measure k
+  return $ unsafeCoerce a
+
+measureNBool :: ValidSelector acs n => SList acs -> QBitAct n (NList Bool (Length acs))
+measureNBool ks = do
+  as <- measureN ks
+  return $ unsafeCoerce as
+
+parallel :: ValidSelector acs n => SList acs -> QBitAct n () -> QBitAct n ()
+parallel sl act = do
+  mapp sl h
+  act
+  mapp sl h
+  return ()
+
+toState :: Bit -> QBitAct 1 ()
+toState a = do
+  (k:>NNil) <- measureN [qb|1|]
+  when (k /= a) $ app [qb|1|] x
 
 h :: QBitAct 1 ()
 h = qActMatrix [
