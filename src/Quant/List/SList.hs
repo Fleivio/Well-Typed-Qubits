@@ -4,7 +4,9 @@ module List.SList(
   , Length
   , module GHC.TypeLits
   , qb
-  , ValidSelector) where
+  , type (<++>)
+  , ValidSelector
+  , sListConcat) where
 
 import Data.Kind
 import GHC.TypeLits
@@ -23,6 +25,13 @@ infixr 5 :-
 
 sListToList :: SList as -> [Int]
 sListToList = unsafeCoerce
+
+type family (as :: [k]) <++> (bs :: [k]) :: [k] where
+  '[] <++> bs = bs
+  (a ': as) <++> bs = a ': (as <++> bs)
+
+sListConcat :: SList a -> SList b -> SList (a <++> b)
+sListConcat = unsafeCoerce (++)
 
 type family Length (as :: [k]) :: Nat where
   Length '[] = 0

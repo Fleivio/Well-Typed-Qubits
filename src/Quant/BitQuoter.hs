@@ -29,7 +29,7 @@ parseNList input = do
 parseNListPat :: String -> Q Pat
 parseNListPat input = do
   let vars = words input
-  foldr (\var acc -> [p| $(varP (mkName var)) :> $acc |]) [p| NNil |] vars
+  foldr (\var acc ->  [p| $(varP (mkName var)) :> $acc |]) [p| NNil |] vars
 
 ---------------------------------
 -- [mkq|O O I|] = mkQ [(nl, prob1), (nl, prob2)]

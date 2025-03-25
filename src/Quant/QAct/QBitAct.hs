@@ -17,11 +17,13 @@ module QAct.QBitAct(
   , measureBool
   , measureNBool
   , parallel
-  , toState) where
+  , toState
+  , oracle) where
 
 import QAct.QAct
 import Unsafe.Coerce
 import Control.Monad
+import Control.Monad.Reader
 
 type QBitAct s a = QAct Bit s a
 
@@ -44,7 +46,7 @@ parallel sl act = do
 
 toState :: Bit -> QBitAct 1 ()
 toState a = do
-  (k:>NNil) <- measureN [qb|1|]
+  k <- measure (SNat @1)
   when (k /= a) $ app [qb|1|] x
 
 h :: QBitAct 1 ()
@@ -144,3 +146,30 @@ swap = qActMatrix [
       ((I:>O:>NNil, O:>I:>NNil), 1),
       ((I:>I:>NNil, I:>I:>NNil), 1)
     ]
+
+oracle :: forall controls targets
+  .(ValidSelector (controls <++> targets) (Length controls + Length targets)) 
+  => (NList Bit (Length controls) -> Bool) 
+  -> SList controls
+  -> SList targets
+  -> QBitAct (Length controls + Length targets) ()
+oracle f contrs targs = do
+  let
+    controlCount = length $ sListToList contrs
+    targetCount = length $ sListToList targs
+    change = [((control ++ target, control ++ flippedTargs), 1 :: PA) |
+            control <- basis @Bit controlCount,
+            f $ unsafeCoerce control,
+            target <- basis @Bit targetCount,
+            let flippedTargs = map (\case {O -> I; I -> O}) target
+            ]
+    unchange = [((control ++ target, control ++ target), 1) |
+            control <- basis @Bit controlCount,
+            not $ f $ unsafeCoerce control,
+            target <- basis @Bit targetCount
+            ]
+    op = mkOP (change ++ unchange)
+  
+  qv <- ask
+  let qv' = unsafeSelectQ (contrs `sListConcat` targs) qv
+  liftIO $ appV op qv'

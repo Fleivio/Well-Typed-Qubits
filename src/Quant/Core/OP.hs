@@ -20,15 +20,15 @@ data OP a = OP {
 
 instance Show a => Show (OP a) where
   show (OP _ qop) =
-    intercalate "\n" $ do
+    intercalate " + \n" $ do
       ((a, b), pa) <- toList qop
-      return $ show pa ++ showKet a ++ showBra b
+      return $ showPA pa ++ " " ++ showKet a ++ showBra b
 
 getOpProb :: Ord a => OP a -> ([a], [a]) -> PA
 getOpProb (OP _ qmap) index = Map.findWithDefault 0 index qmap
 
 mkOP :: Ord a => [(([a], [a]), PA)] -> OP a
-mkOP l = OP (length $ fst $ fst $ head l) (fromList l)
+mkOP l = OP (length $ fst $ fst $ head l) $ fromList l
 
 appOP ::
      Basis a

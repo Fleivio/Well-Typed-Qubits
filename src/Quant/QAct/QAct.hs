@@ -12,6 +12,7 @@ module QAct.QAct
   , module List.SList
   , measureN
   , mapp
+  , phaseOracle
   ) where
 
 import Core.Virt
@@ -21,6 +22,7 @@ import List.SList
 import Control.Monad.Reader
 import Data.Kind
 import Unsafe.Coerce
+import Data.Data (Proxy(..))
 
 type QAct :: Type -> Natural -> Type -> Type
 type QAct b s a = ReaderT (Virt b s) IO a
@@ -46,7 +48,7 @@ app sl act = do
   let adaptedValue = unsafeSelectQ sl qv
   liftIO $ runReaderT act adaptedValue
 
-sample :: Show b => QAct b s () 
+sample :: Show b => QAct b s ()
 sample = do
   virt <- ask
   liftIO $ printQ virt
@@ -68,3 +70,51 @@ mapp sl op = do
   qv <- ask
   let list = sListToList sl
   liftIO $ sequence [runQ op $ unsafeCoerce (unsafeSelectQ (unsafeCoerce [ix]) qv) | ix <- list]
+
+
+phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (NList b n -> Bool) -> QAct b n ()
+phaseOracle f = do
+  let
+      op = mkOP @b
+          [ ((b,b), if f $ unsafeCoerce b then -1 else 1)
+           | b <- basis @b $ fromIntegral (natVal (Proxy @n))]
+  vv <- ask
+  -- liftIO $ putStrLn "\nOracle\n" >> print op
+  liftIO $ appV op vv
+
+-- controlled :: forall b controls targets. (Basis b, ValidSelector (controls <++> targets) (Length (controls <++> targets)) )
+--   => (NList b (Length controls) -> Bool) 
+--   -> SList controls
+--   -> SList targets
+--   -> Matrix b (Length targets)
+--   -> QAct b (Length (controls <++> targets)) ()
+-- controlled = do 
+--   let 
+--     mat = unsafeCoerce mat :: [(([b],[b]), PA)]
+--     controlCount = fromIntegral $ natVal (Proxy @control)
+--     targetCount = fromIntegral $ natVal (Proxy @target)
+
+
+-- oh damn....
+-- controlled :: forall b control target. (Show b, Basis b, KnownNat control, KnownNat target) 
+--   => (NList b control -> Bool) -> Matrix b target -> QAct b (control + target) ()
+-- controlled f mat = do
+--   let
+--     mat' = unsafeCoerce mat :: [(([b],[b]), PA)]
+--     controlCount = fromIntegral $ natVal (Proxy @control)
+--     targetCount = fromIntegral $ natVal (Proxy @target)
+--     unchangeCase = [((control ++ target, control ++ target), 1) |
+--                       control <- basis @b controlCount,
+--                       not (f $ unsafeCoerce control),
+--                       target <- basis @b targetCount]
+--     changeCase = [((control ++ target, control ++ outcome), getMatrixProb target outcome) |
+--                       control <- basis @b controlCount,
+--                       f $ unsafeCoerce control,
+--                       target <- basis @b targetCount,
+--                       outcome <- basis @b targetCount,
+--                       getMatrixProb target outcome /= 0]
+--     getMatrixProb t1 t2 = maybe 0 snd (find (\((a,b), _) -> a == t1 && b == t2) mat')
+--     op = mkOP (changeCase ++ unchangeCase)
+--   vv <- ask
+--   liftIO $ print "alou" >> print op
+--   liftIO $ appV op vv

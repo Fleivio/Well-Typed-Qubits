@@ -44,23 +44,24 @@ testAdder = do
 
 ------------------------------------------------------------------
 
-deutsch :: QBitAct 2 a -> QBitAct 2 a
+deutsch :: QBitAct 2 a -> QBitAct 2 Bit
 deutsch uf = do
   app [qb|2|]    x
-  mapp [qb|1 2|] h
-  eff <- app [qb|1 2|] uf
+  _ <- mapp [qb|1 2|] h
+  _ <- app [qb|1 2|] uf
   app [qb|1|]    h
-  [nl|val|] <- measureN [qb|1|]
-  case val of
-    O -> liftIO $ print "f is constant" >> return eff
-    I -> liftIO $ print "f is balanced" >> return eff
+  measure #1
 
 testDeutsch :: IO ()
 testDeutsch = do
     putStrLn "\n\n----Deutsch test----"
     mem <- [mkq|O O|]
     putStrLn "i. CNot:"
-    runQ (deutsch cnot) mem
+    r <- runQ (deutsch cnot) mem
+    case r of
+      O -> print "cnot is constant"
+      I -> print "cnot is balanced"
+
 
     mem2 <- [mkq|O O|]
     putStrLn "ii. Const O:"
@@ -85,46 +86,37 @@ teleport = do
 -- In progress
 
 zAny :: QBitAct 3 ()
-zAny = qActMatrix [
-      ((O:>O:>O:>NNil, O:>O:>O:>NNil), 1),
-      ((I:>O:>O:>NNil, I:>O:>O:>NNil), -1),
-      ((I:>I:>O:>NNil, I:>I:>O:>NNil), -1),
-      ((I:>I:>I:>NNil, I:>I:>I:>NNil), -1),
-      ((O:>I:>I:>NNil, O:>I:>I:>NNil), -1),
-      ((O:>O:>I:>NNil, O:>O:>I:>NNil), -1),
-      ((O:>I:>O:>NNil, O:>I:>O:>NNil), -1),
-      ((I:>O:>I:>NNil, I:>O:>I:>NNil), -1)
-    ]
-
-oracle111 :: QBitAct 3 ()
-oracle111 = qActMatrix [
-      ((O:>O:>O:>NNil, O:>O:>O:>NNil), 1),
-      ((I:>O:>O:>NNil, I:>O:>O:>NNil), 1),
-      ((I:>I:>O:>NNil, I:>I:>O:>NNil), 1),
-      ((I:>I:>I:>NNil, I:>I:>I:>NNil), -1),
-      ((O:>I:>I:>NNil, O:>I:>I:>NNil), 1),
-      ((O:>O:>I:>NNil, O:>O:>I:>NNil), 1),
-      ((O:>I:>O:>NNil, O:>I:>O:>NNil), 1),
-      ((I:>O:>I:>NNil, I:>O:>I:>NNil), 1)
-    ]
+zAny = phaseOracle (not . (==) [nl|O O O|])
 
 grover :: QBitAct 3 () -> QBitAct 3 ()
-grover oracle = do
+grover zf = do
   let targets = [qb|1 2 3|]
 
   mapp targets (toState O >> h)    -- |000> 
 
   replicateM_ 2 ( do
-    oracle
+    zf
     parallel targets zAny
     )
   val <- measureN targets
   liftIO $ print val
 
 testGrover :: IO ()
-testGrover = do
-  a <- [mkq|O O O|]
-  runQ (grover oracle111) a
+testGrover = do 
+  putStrLn "\n\n----Grover test----"
+  [mkq|O O O|] >>= runQ (grover $ phaseOracle ( == [nl|I O I|] ))
+
+------------------------------------------------------------------
+
+myOracle :: QBitAct 3 ()
+myOracle = oracle (\[nl|a b|] -> a == b) [qb|1 3|] [qb|2|]
+
+testOracle :: IO ()
+testOracle = do
+  putStrLn "\n\n----Oracle test----"
+  mem <- [mkq|O O O|]
+  runQ (mapp [qb|1 3|] h >> myOracle) mem
+  printQ mem
 
 ------------------------------------------------------------------
   
@@ -154,5 +146,6 @@ main :: IO ()
 main = do
     testGrover
     -- testSqrtNot
-    testDeutsch
+    -- testDeutsch
     -- testAdder
+    testOracle

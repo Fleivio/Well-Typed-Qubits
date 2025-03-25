@@ -15,3 +15,6 @@ nListToList = unsafeCoerce
 
 instance (Show a) => Show (NList a n) where
   show a = "#" ++ show (nListToList a)
+
+instance (Eq a) => Eq (NList a n) where
+  a == b = nListToList a == nListToList b
