@@ -34,23 +34,21 @@ observeQR :: Basis a => QR a -> Int -> IO a
 observeQR ref ix = do
   qVal <- readIORef ref
   let 
-    wholeSize = qvSize qVal
+    wsize = qvSize qVal
     prob' a =
         sqrt . sum
           $ [ squareModulus
-              (getProb qVal (left ++ a ++ right))
-              :+ 0
+              (getProb qVal (left ++ a ++ right)) :+ 0
             | left <- basis (ix - 1)
-            , right <- basis (wholeSize - ix)
+            , right <- basis (wsize - ix)
             ]
-    auxQval = mkQV [(a, prob' a) | a <- basis 1]
-  [obsRes] <- observeV auxQval
+  obsRes <- observeV $ mkQV [(a, prob' a) | a <- basis 1]
   let
     newVal =
-      mkQV [( left ++ [obsRes] ++ right
-              , getProb qVal (left ++ [obsRes] ++ right))
+      mkQV [( left ++ obsRes ++ right
+              , getProb qVal (left ++ obsRes ++ right))
             | left <- basis (ix - 1)
-            , right <- basis (wholeSize - ix)
+            , right <- basis (wsize - ix)
             ] 
   writeIORef ref (normalize newVal)
-  return obsRes
+  return $ head obsRes

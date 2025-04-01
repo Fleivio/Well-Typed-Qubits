@@ -6,7 +6,7 @@ class Ord a => Basis a where
   basis' :: [a]
 
 instance Basis Bit where
-  basis' = [O, I]
+  basis' = [1, 0]
 
 basis :: forall a. Basis a => Int -> [[a]]
 basis 0 = [[]]

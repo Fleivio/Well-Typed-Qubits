@@ -7,12 +7,15 @@ module QAct.QAct
   , sample
   , measure
   , liftIO
-  , module Core.Virt
+  , measureN
+  , phaseOracle
+  , mapp
+  , mapp_
+  , appAll
+  , appAll_
   , module List.NList
   , module List.SList
-  , measureN
-  , mapp
-  , phaseOracle
+  , module Core.Virt
   ) where
 
 import Core.Virt
@@ -71,6 +74,10 @@ mapp sl op = do
   let list = sListToList sl
   liftIO $ sequence [runQ op $ unsafeCoerce (unsafeSelectQ (unsafeCoerce [ix]) qv) | ix <- list]
 
+mapp_ :: ValidSelector acs n => SList acs -> QAct b 1 a -> QAct b n ()
+mapp_ sl op = do 
+  _ <- mapp sl op
+  return ()
 
 phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (NList b n -> Bool) -> QAct b n ()
 phaseOracle f = do
@@ -79,8 +86,20 @@ phaseOracle f = do
           [ ((b,b), if f $ unsafeCoerce b then -1 else 1)
            | b <- basis @b $ fromIntegral (natVal (Proxy @n))]
   vv <- ask
-  -- liftIO $ putStrLn "\nOracle\n" >> print op
   liftIO $ appV op vv
+
+appAll :: forall b n a. KnownNat n => QAct b 1 a -> QAct b n [a]
+appAll op = do
+  qv <- ask
+  liftIO $ sequence
+    [runQ op $ unsafeCoerce (unsafeSelectQ (unsafeCoerce [ix]) qv)
+      | ix <- [1..fromIntegral $ natVal $ Proxy @n]]
+
+appAll_ :: forall b n a. KnownNat n => QAct b 1 a -> QAct b n ()
+appAll_ op = do
+  _ <- appAll op
+  return ()
+
 
 -- controlled :: forall b controls targets. (Basis b, ValidSelector (controls <++> targets) (Length (controls <++> targets)) )
 --   => (NList b (Length controls) -> Bool) 

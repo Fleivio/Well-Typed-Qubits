@@ -6,32 +6,32 @@ import List.NList
 import List.OvLabel
 
 h :: OP Bit
-h = mkOP [(([O],[O]),1),(([O],[I]),1),(([I],[O]),1),(([I],[I]),-1)]
+h = mkOP [(([0],[0]),1),(([0],[1]),1),(([1],[0]),1),(([1],[1]),-1)]
 cnot :: OP Bit
-cnot = mkOP [(([O,O],[O,O]),1),(([O,I],[O,I]),1),(([I,O],[I,I]),1),(([I,I],[I,O]),1)]
+cnot = mkOP [(([0,0],[0,0]),1),(([0,1],[0,1]),1),(([1,0],[1,1]),1),(([1,1],[1,0]),1)]
 toffoli :: OP Bit
-toffoli = mkOP [(([O,O,O],[O,O,O]),1),
-                (([O,O,I],[O,O,I]),1),
-                (([O,I,O],[O,I,O]),1),
-                (([O,I,I],[O,I,I]),1),
-                (([I,O,I],[I,O,I]),1),
-                (([I,O,O],[I,O,O]),1),
-                (([I,I,O],[I,I,I]),1),
-                (([I,I,I],[I,I,O]),1)]
+toffoli = mkOP [(([0,0,0],[0,0,0]),1),
+                (([0,0,1],[0,0,1]),1),
+                (([0,1,0],[0,1,0]),1),
+                (([0,1,1],[0,1,1]),1),
+                (([1,0,1],[1,0,1]),1),
+                (([1,0,0],[1,0,0]),1),
+                (([1,1,0],[1,1,1]),1),
+                (([1,1,1],[1,1,0]),1)]
 
 selectQ :: ValidSelector nacs n => SList nacs -> Virt a n -> Virt a (Length nacs)
 selectQ = unsafeSelectQ
 
 testNoMonad :: IO ()
 testNoMonad = do
-  value <- mkQ [(I:>O:>I:>O:>NNil, 1)]
+  value <- mkQ [(1:>0:>1:>0:>NNil, 1)]
   let v1 = selectQ [qb|2|] value
   appV h v1
   printQ value
 
 entangleExample :: IO ()
 entangleExample = do
-  value <- mkQ [(O:>O:>NNil, 1)]
+  value <- mkQ [(0:>0:>NNil, 1)]
   let v1 = selectQ [qb|1|] value
   appV h v1
   appV cnot value
@@ -39,7 +39,7 @@ entangleExample = do
 
 adderExample :: IO ()
 adderExample = do
-  mem <- mkQ [(I:>O:>O:>O:>NNil, 1)]
+  mem <- mkQ [(1:>0:>0:>0:>NNil, 1)]
 
   let
     q_124 = selectQ (SNat @1 :- SNat @2 :- SNat @4 :- SNil) mem

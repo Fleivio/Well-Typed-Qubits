@@ -1,7 +1,8 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Main(main) where
 
 import Quant
-import Control.Monad
+import Control.Monad 
 
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
@@ -9,7 +10,7 @@ sqrtNot = h >> s >> h
 testSqrtNot :: IO ()
 testSqrtNot = do
     putStrLn "\n\n----Test sqrtNot----"
-    mem <- [mkq|O|]
+    mem <- [mkq|0|]
     runQ (sample >> sqrtNot >> sample >> sqrtNot >> sample) mem
 
 ------------------------------------------------------------------
@@ -37,7 +38,7 @@ testAdder = do
     putStrLn "carryIn: "
     carry <- getLine
 
-    mem <- mkQ [(read a :> read b :> read carry :> O :> NNil, 1)]
+    mem <- mkQ [(read a :> read b :> read carry :> 0 :> NNil, 1)]
     putStrLn "\nPerformin quantum operations..."
     putStrLn "|x y result carryOut>"
     runQ (adder >> sample) mem
@@ -49,23 +50,23 @@ deutsch uf = do
   app [qb|2|]    x
   _ <- mapp [qb|1 2|] h
   _ <- app [qb|1 2|] uf
-  app [qb|1|]    h
+  app [qb|1|] h
   measure #1
 
 testDeutsch :: IO ()
 testDeutsch = do
     putStrLn "\n\n----Deutsch test----"
-    mem <- [mkq|O O|]
+    mem <- [mkq|0 0|]
     putStrLn "i. CNot:"
     r <- runQ (deutsch cnot) mem
     case r of
-      O -> print "cnot is constant"
-      I -> print "cnot is balanced"
+      0 -> print "cnot is constant"
+      1 -> print "cnot is balanced"
 
 
-    mem2 <- [mkq|O O|]
-    putStrLn "ii. Const O:"
-    runQ (deutsch $ app [qb|2|] (toState O)) mem2
+    mem2 <- [mkq|0 0|]
+    putStrLn "ii. Const 0:"
+    runQ (deutsch $ app [qb|2|] (toState 0)) mem2
     return ()
 
 ------------------------------------------------------------------
@@ -86,25 +87,24 @@ teleport = do
 -- In progress
 
 zAny :: QBitAct 3 ()
-zAny = phaseOracle (not . (==) [nl|O O O|])
+zAny = phaseOracle (not . (==) [nl|0 0 0|])
 
-grover :: QBitAct 3 () -> QBitAct 3 ()
+grover :: QBitAct 3 () -> QBitAct 3 (NList Bit 3)
 grover zf = do
   let targets = [qb|1 2 3|]
+  
+  appAll_ (toState 0 >> h)
 
-  mapp targets (toState O >> h)    -- |000> 
-
-  replicateM_ 2 ( do
-    zf
-    parallel targets zAny
+  replicateM_ 2 ( 
+    zf >> parallel zAny
     )
-  val <- measureN targets
-  liftIO $ print val
+  measureN targets
 
 testGrover :: IO ()
 testGrover = do 
   putStrLn "\n\n----Grover test----"
-  [mkq|O O O|] >>= runQ (grover $ phaseOracle ( == [nl|I O I|] ))
+  outcome <- [mkq|0 0 0|] >>= runQ (grover $ phaseOracle ( == [nl|0 1 0|] )) 
+  print outcome
 
 ------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ myOracle = oracle (\[nl|a b|] -> a == b) [qb|1 3|] [qb|2|]
 testOracle :: IO ()
 testOracle = do
   putStrLn "\n\n----Oracle test----"
-  mem <- [mkq|O O O|]
+  mem <- [mkq|0 0 0|]
   runQ (mapp [qb|1 3|] h >> myOracle) mem
   printQ mem
 

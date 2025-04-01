@@ -22,9 +22,11 @@ parseNList input = do
   let bits = map parseBit (words input)
   foldr (\bit acc -> [| $bit :> $acc |]) [| NNil |] bits
   where
-    parseBit "I" = [| I |]
-    parseBit "O" = [| O |]
-    parseBit _   = error "Invalid Bit value: must be 'I' or 'O'"
+    parseBit "1" = [| 1 |]
+    parseBit "I" = [| 1 |]
+    parseBit "0" = [| 0 |]
+    parseBit "O" = [| 0 |]
+    parseBit _   = error "Invalid Bit value: must be '1' or '0'"
 
 parseNListPat :: String -> Q Pat
 parseNListPat input = do
@@ -32,7 +34,6 @@ parseNListPat input = do
   foldr (\var acc ->  [p| $(varP (mkName var)) :> $acc |]) [p| NNil |] vars
 
 ---------------------------------
--- [mkq|O O I|] = mkQ [(nl, prob1), (nl, prob2)]
 
 mkq :: QuasiQuoter
 mkq = QuasiQuoter
