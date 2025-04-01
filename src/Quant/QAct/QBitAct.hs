@@ -32,7 +32,7 @@ measureBool k = do
   a <-  measure k
   return $ unsafeCoerce a
 
-measureNBool :: ValidSelector acs n => SList acs -> QBitAct n (NList Bool (Length acs))
+measureNBool :: ValidSelector acs n => SList acs -> QBitAct n (NList (Length acs) Bool)
 measureNBool ks = do
   as <- measureN ks
   return $ unsafeCoerce as
@@ -149,7 +149,7 @@ swap = qActMatrix [
 
 oracle :: forall ctrs trgs
   . ValidSelector (ctrs <++> trgs) (Length ctrs + Length trgs)
-  => (NList Bit (Length ctrs) -> Bool) 
+  => (NList (Length ctrs) Bit -> Bool) 
   -> SList ctrs
   -> SList trgs
   -> QBitAct (Length ctrs + Length trgs) ()

@@ -23,7 +23,7 @@ type Virt :: Type -> Natural -> Type
 data Virt a n where
   Virt :: QR a -> [Int] -> Virt a n
 
-mkQ :: forall s a. (KnownNat s, Basis a) => [(NList a s, PA)] -> IO (Virt a s)
+mkQ :: forall s a. (KnownNat s, Basis a) => [(NList s a, PA)] -> IO (Virt a s)
 mkQ list = do 
   qr <- qrFromList $ unsafeCoerce list
   return $ Virt qr [1..fromIntegral $ natVal (Proxy @s)]

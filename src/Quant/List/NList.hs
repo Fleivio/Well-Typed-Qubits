@@ -4,17 +4,23 @@ import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
 
-type NList :: Type -> Natural -> Type
-data NList a n where
-  NNil :: NList a 0
-  (:>) :: a -> NList a n -> NList a (n + 1)
+type NList :: Natural -> Type -> Type
+data NList n a where
+  NNil :: NList 0 a
+  (:>) :: a -> NList n a -> NList (n + 1) a
 infixr 5 :>
 
-nListToList :: NList a n -> [a]
+instance Functor (NList n) where
+  fmap f ls = unsafeCoerce $ f <$> nListToList ls
+
+nListToList :: NList n a -> [a]
 nListToList = unsafeCoerce
 
-instance (Show a) => Show (NList a n) where
+instance (Show a) => Show (NList n a) where
   show a = "#" ++ show (nListToList a)
 
-instance (Eq a) => Eq (NList a n) where
+instance (Eq a) => Eq (NList n a) where
   a == b = nListToList a == nListToList b
+
+instance Foldable (NList n) where
+  foldr f b ta = foldr f b (nListToList ta)

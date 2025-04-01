@@ -30,12 +30,12 @@ import Data.Data (Proxy(..))
 type QAct :: Type -> Natural -> Type -> Type
 type QAct b s a = ReaderT (Virt b s) IO a
 
-type Matrix b s = [((NList b s, NList b s), PA)]
+type Matrix s b = [((NList s b, NList s b), PA)]
 
 runQ :: QAct b s a -> Virt b s -> IO a
 runQ = runReaderT
 
-qActMatrix :: Basis b => Matrix b s -> QAct b s ()
+qActMatrix :: Basis b => Matrix s b -> QAct b s ()
 qActMatrix mat = do
   let op = mkOP $ unsafeCoerce mat
   vv <- ask
@@ -61,7 +61,7 @@ measure sn = do
   virt <- ask
   liftIO $ measureVirt virt (fromIntegral $ natVal sn)
 
-measureN :: (Basis b, ValidSelector acs n) => SList acs -> QAct b n (NList b (Length acs))
+measureN :: (Basis b, ValidSelector acs n) => SList acs -> QAct b n (NList (Length acs) b)
 measureN ks = do
   qv <- ask
   let list = sListToList ks
@@ -79,7 +79,7 @@ mapp_ sl op = do
   _ <- mapp sl op
   return ()
 
-phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (NList b n -> Bool) -> QAct b n ()
+phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (NList n b -> Bool) -> QAct b n ()
 phaseOracle f = do
   let
       op = mkOP @b

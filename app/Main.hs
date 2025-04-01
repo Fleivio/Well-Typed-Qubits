@@ -63,12 +63,6 @@ testDeutsch = do
       0 -> print "cnot is constant"
       1 -> print "cnot is balanced"
 
-
-    mem2 <- [mkq|0 0|]
-    putStrLn "ii. Const 0:"
-    runQ (deutsch $ app [qb|2|] (toState 0)) mem2
-    return ()
-
 ------------------------------------------------------------------
 
 teleport :: QBitAct 3 ()
@@ -86,10 +80,14 @@ teleport = do
 
 -- In progress
 
-zAny :: QBitAct 3 ()
-zAny = phaseOracle (not . (==) [nl|0 0 0|])
+toBool :: Bit -> Bool
+toBool 0 = False
+toBool 1 = True
 
-grover :: QBitAct 3 () -> QBitAct 3 (NList Bit 3)
+zAny :: QBitAct 3 ()
+zAny = phaseOracle (not . toBool . sum)
+
+grover :: QBitAct 3 () -> QBitAct 3 (NList 3 Bit)
 grover zf = do
   let targets = [qb|1 2 3|]
   
@@ -148,4 +146,4 @@ main = do
     -- testSqrtNot
     -- testDeutsch
     -- testAdder
-    testOracle
+    -- testOracle
