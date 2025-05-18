@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module Main(main) where
 
 import Quant
@@ -87,7 +88,7 @@ toBool 1 = True
 zAny :: QBitAct 3 ()
 zAny = phaseOracle (not . toBool . sum)
 
-grover :: QBitAct 3 () -> QBitAct 3 (NList 3 Bit)
+grover :: QBitAct 3 () -> QBitAct 3 (Vec 3 Bit)
 grover zf = do
   let targets = [qb|1 2 3|]
   

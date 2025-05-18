@@ -35,7 +35,7 @@ library quantum
         Core.QR
         Core.Virt
         
-        List.NList
+        List.Vec
         List.SList
         List.OvLabel
 

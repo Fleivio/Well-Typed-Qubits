@@ -13,13 +13,13 @@ module QAct.QAct
   , mapp_
   , appAll
   , appAll_
-  , module List.NList
+  , module List.Vec
   , module List.SList
   , module Core.Virt
   ) where
 
 import Core.Virt
-import List.NList
+import List.Vec
 import List.SList
 
 import Control.Monad.Reader
@@ -30,7 +30,7 @@ import Data.Data (Proxy(..))
 type QAct :: Type -> Natural -> Type -> Type
 type QAct b s a = ReaderT (Virt b s) IO a
 
-type Matrix s b = [((NList s b, NList s b), PA)]
+type Matrix s b = [((Vec s b, Vec s b), PA)]
 
 runQ :: QAct b s a -> Virt b s -> IO a
 runQ = runReaderT
@@ -61,7 +61,7 @@ measure sn = do
   virt <- ask
   liftIO $ measureVirt virt (fromIntegral $ natVal sn)
 
-measureN :: (Basis b, ValidSelector acs n) => SList acs -> QAct b n (NList (Length acs) b)
+measureN :: (Basis b, ValidSelector acs n) => SList acs -> QAct b n (Vec (Length acs) b)
 measureN ks = do
   qv <- ask
   let list = sListToList ks
@@ -79,7 +79,7 @@ mapp_ sl op = do
   _ <- mapp sl op
   return ()
 
-phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (NList n b -> Bool) -> QAct b n ()
+phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (Vec n b -> Bool) -> QAct b n ()
 phaseOracle f = do
   let
       op = mkOP @b
@@ -102,7 +102,7 @@ appAll_ op = do
 
 
 -- controlled :: forall b controls targets. (Basis b, ValidSelector (controls <++> targets) (Length (controls <++> targets)) )
---   => (NList b (Length controls) -> Bool) 
+--   => (Vec b (Length controls) -> Bool) 
 --   -> SList controls
 --   -> SList targets
 --   -> Matrix b (Length targets)
@@ -116,7 +116,7 @@ appAll_ op = do
 
 -- oh damn....
 -- controlled :: forall b control target. (Show b, Basis b, KnownNat control, KnownNat target) 
---   => (NList b control -> Bool) -> Matrix b target -> QAct b (control + target) ()
+--   => (Vec b control -> Bool) -> Matrix b target -> QAct b (control + target) ()
 -- controlled f mat = do
 --   let
 --     mat' = unsafeCoerce mat :: [(([b],[b]), PA)]

@@ -2,7 +2,7 @@ module NoMonad(testNoMonad, entangleExample, adderExample) where
 
 import Core.Virt
 import List.SList
-import List.NList
+import List.Vec
 import List.OvLabel
 
 h :: OP Bit

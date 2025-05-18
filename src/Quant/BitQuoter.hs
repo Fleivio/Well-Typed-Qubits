@@ -1,6 +1,6 @@
 module BitQuoter(nl, mkq) where
 
-import List.NList
+import List.Vec
 import Core.Virt
 import Text.Read (readMaybe)
 
