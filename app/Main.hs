@@ -39,7 +39,7 @@ testAdder = do
     putStrLn "carryIn: "
     carry <- getLine
 
-    mem <- mkQ [(read a :> read b :> read carry :> 0 :> NNil, 1)]
+    mem <- mkQ [(read a :> read b :> read carry :> 0 :> VNil, 1)]
     putStrLn "\nPerformin quantum operations..."
     putStrLn "|x y result carryOut>"
     runQ (adder >> sample) mem

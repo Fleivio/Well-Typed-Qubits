@@ -51,55 +51,55 @@ toState a = do
 
 h :: QBitAct 1 ()
 h = qActMatrix [
-      ((0:>NNil, 0:>NNil), recip $ sqrt 2),
-      ((0:>NNil, 1:>NNil), recip $ sqrt 2),
-      ((1:>NNil, 0:>NNil), recip $ sqrt 2),
-      ((1:>NNil, 1:>NNil), -(recip $ sqrt 2))
+      ((0:>VNil, 0:>VNil), recip $ sqrt 2),
+      ((0:>VNil, 1:>VNil), recip $ sqrt 2),
+      ((1:>VNil, 0:>VNil), recip $ sqrt 2),
+      ((1:>VNil, 1:>VNil), -(recip $ sqrt 2))
     ]
 
 x :: QBitAct 1 ()
 x = qActMatrix [
-      ((0:>NNil, 1:>NNil), 1),
-      ((1:>NNil, 0:>NNil), 1)
+      ((0:>VNil, 1:>VNil), 1),
+      ((1:>VNil, 0:>VNil), 1)
     ]
 
 y :: QBitAct 1 ()
 y = qActMatrix [
-      ((0:>NNil, 1:>NNil), -1),
-      ((1:>NNil, 0:>NNil), 1)
+      ((0:>VNil, 1:>VNil), -1),
+      ((1:>VNil, 0:>VNil), 1)
     ]
 
 
 p :: Double -> QBitAct 1 ()
 p l = qActMatrix [
-      ((0:>NNil, 0:>NNil), 1),
-      ((1:>NNil, 1:>NNil), exp (0 :+ l))
+      ((0:>VNil, 0:>VNil), 1),
+      ((1:>VNil, 1:>VNil), exp (0 :+ l))
     ]
 
 z :: QBitAct 1 ()
 z = qActMatrix [
-      ((0:>NNil, 0:>NNil), 1),
-      ((1:>NNil, 1:>NNil), -1)
+      ((0:>VNil, 0:>VNil), 1),
+      ((1:>VNil, 1:>VNil), -1)
     ]
 
 s :: QBitAct 1 ()
 s = qActMatrix [
-      ((0:>NNil, 0:>NNil), 1),
-      ((1:>NNil, 1:>NNil), 0 :+ 1)
+      ((0:>VNil, 0:>VNil), 1),
+      ((1:>VNil, 1:>VNil), 0 :+ 1)
     ]
 
 t :: QBitAct 1 ()
 t = qActMatrix [
-      ((0:>NNil, 0:>NNil), 1),
-      ((1:>NNil, 1:>NNil), (1 :+ 1)/sqrt 2)
+      ((0:>VNil, 0:>VNil), 1),
+      ((1:>VNil, 1:>VNil), (1 :+ 1)/sqrt 2)
     ]
 
 cnot :: QBitAct 2 ()
 cnot = qActMatrix [
-      ((0:>0:>NNil, 0:>0:>NNil), 1),
-      ((0:>1:>NNil, 0:>1:>NNil), 1),
-      ((1:>0:>NNil, 1:>1:>NNil), 1),
-      ((1:>1:>NNil, 1:>0:>NNil), 1)
+      ((0:>0:>VNil, 0:>0:>VNil), 1),
+      ((0:>1:>VNil, 0:>1:>VNil), 1),
+      ((1:>0:>VNil, 1:>1:>VNil), 1),
+      ((1:>1:>VNil, 1:>0:>VNil), 1)
     ]
 
 entangle :: QBitAct 2 ()
@@ -109,42 +109,42 @@ entangle = do
 
 toffoli :: QBitAct 3 ()
 toffoli = qActMatrix [
-      ((0:>0:>0:>NNil, 0:>0:>0:>NNil), 1),
-      ((0:>0:>1:>NNil, 0:>0:>1:>NNil), 1),
-      ((0:>1:>0:>NNil, 0:>1:>0:>NNil), 1),
-      ((0:>1:>1:>NNil, 0:>1:>1:>NNil), 1),
-      ((1:>0:>0:>NNil, 1:>0:>0:>NNil), 1),
-      ((1:>0:>1:>NNil, 1:>0:>1:>NNil), 1),
-      ((1:>1:>0:>NNil, 1:>1:>1:>NNil), 1),
-      ((1:>1:>1:>NNil, 1:>1:>0:>NNil), 1)
+      ((0:>0:>0:>VNil, 0:>0:>0:>VNil), 1),
+      ((0:>0:>1:>VNil, 0:>0:>1:>VNil), 1),
+      ((0:>1:>0:>VNil, 0:>1:>0:>VNil), 1),
+      ((0:>1:>1:>VNil, 0:>1:>1:>VNil), 1),
+      ((1:>0:>0:>VNil, 1:>0:>0:>VNil), 1),
+      ((1:>0:>1:>VNil, 1:>0:>1:>VNil), 1),
+      ((1:>1:>0:>VNil, 1:>1:>1:>VNil), 1),
+      ((1:>1:>1:>VNil, 1:>1:>0:>VNil), 1)
     ]
 
 cz :: QBitAct 2 ()
 cz = qActMatrix [
-      ((0:>0:>NNil, 0:>0:>NNil), 1),
-      ((0:>1:>NNil, 0:>1:>NNil), 1),
-      ((1:>0:>NNil, 1:>0:>NNil), 1),
-      ((1:>1:>NNil, 1:>1:>NNil), -1)
+      ((0:>0:>VNil, 0:>0:>VNil), 1),
+      ((0:>1:>VNil, 0:>1:>VNil), 1),
+      ((1:>0:>VNil, 1:>0:>VNil), 1),
+      ((1:>1:>VNil, 1:>1:>VNil), -1)
     ]
 
 fredkin :: QBitAct 3 ()
 fredkin = qActMatrix [
-      ((0:>0:>0:>NNil, 0:>0:>0:>NNil), 1),
-      ((0:>0:>1:>NNil, 0:>0:>1:>NNil), 1),
-      ((0:>1:>0:>NNil, 0:>1:>0:>NNil), 1),
-      ((0:>1:>1:>NNil, 0:>1:>1:>NNil), 1),
-      ((1:>0:>0:>NNil, 1:>0:>0:>NNil), 1),
-      ((1:>0:>1:>NNil, 1:>1:>0:>NNil), 1),
-      ((1:>1:>0:>NNil, 1:>0:>1:>NNil), 1),
-      ((1:>1:>1:>NNil, 1:>1:>1:>NNil), 1)
+      ((0:>0:>0:>VNil, 0:>0:>0:>VNil), 1),
+      ((0:>0:>1:>VNil, 0:>0:>1:>VNil), 1),
+      ((0:>1:>0:>VNil, 0:>1:>0:>VNil), 1),
+      ((0:>1:>1:>VNil, 0:>1:>1:>VNil), 1),
+      ((1:>0:>0:>VNil, 1:>0:>0:>VNil), 1),
+      ((1:>0:>1:>VNil, 1:>1:>0:>VNil), 1),
+      ((1:>1:>0:>VNil, 1:>0:>1:>VNil), 1),
+      ((1:>1:>1:>VNil, 1:>1:>1:>VNil), 1)
     ]
 
 swap :: QBitAct 2 ()
 swap = qActMatrix [
-      ((0:>0:>NNil, 0:>0:>NNil), 1),
-      ((0:>1:>NNil, 1:>0:>NNil), 1),
-      ((1:>0:>NNil, 0:>1:>NNil), 1),
-      ((1:>1:>NNil, 1:>1:>NNil), 1)
+      ((0:>0:>VNil, 0:>0:>VNil), 1),
+      ((0:>1:>VNil, 1:>0:>VNil), 1),
+      ((1:>0:>VNil, 0:>1:>VNil), 1),
+      ((1:>1:>VNil, 1:>1:>VNil), 1)
     ]
 
 oracle :: forall ctrs trgs

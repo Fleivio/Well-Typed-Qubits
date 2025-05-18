@@ -6,7 +6,7 @@ import Unsafe.Coerce
 
 type Vec :: Natural -> Type -> Type
 data Vec n a where
-  NNil :: Vec 0 a
+  VNil :: Vec 0 a
   (:>) :: a -> Vec n a -> Vec (n + 1) a
 infixr 5 :>
 

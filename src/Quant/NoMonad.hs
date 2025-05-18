@@ -24,14 +24,14 @@ selectQ = unsafeSelectQ
 
 testNoMonad :: IO ()
 testNoMonad = do
-  value <- mkQ [(1:>0:>1:>0:>NNil, 1)]
+  value <- mkQ [(1:>0:>1:>0:>VNil, 1)]
   let v1 = selectQ [qb|2|] value
   appV h v1
   printQ value
 
 entangleExample :: IO ()
 entangleExample = do
-  value <- mkQ [(0:>0:>NNil, 1)]
+  value <- mkQ [(0:>0:>VNil, 1)]
   let v1 = selectQ [qb|1|] value
   appV h v1
   appV cnot value
@@ -39,7 +39,7 @@ entangleExample = do
 
 adderExample :: IO ()
 adderExample = do
-  mem <- mkQ [(1:>0:>0:>0:>NNil, 1)]
+  mem <- mkQ [(1:>0:>0:>0:>VNil, 1)]
 
   let
     q_124 = selectQ (SNat @1 :- SNat @2 :- SNat @4 :- SNil) mem

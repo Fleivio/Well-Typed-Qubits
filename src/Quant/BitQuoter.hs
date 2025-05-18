@@ -20,7 +20,7 @@ nl = QuasiQuoter
 parseNList :: String -> Q Exp
 parseNList input = do
   let bits = map parseBit (words input)
-  foldr (\bit acc -> [| $bit :> $acc |]) [| NNil |] bits
+  foldr (\bit acc -> [| $bit :> $acc |]) [| VNil |] bits
   where
     parseBit "1" = [| 1 |]
     parseBit "I" = [| 1 |]
@@ -31,7 +31,7 @@ parseNList input = do
 parseNListPat :: String -> Q Pat
 parseNListPat input = do
   let vars = words input
-  foldr (\var acc ->  [p| $(varP (mkName var)) :> $acc |]) [p| NNil |] vars
+  foldr (\var acc ->  [p| $(varP (mkName var)) :> $acc |]) [p| VNil |] vars
 
 ---------------------------------
 
