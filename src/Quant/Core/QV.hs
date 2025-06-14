@@ -10,6 +10,7 @@ module Core.QV
   , observeV
   , showBra
   , showKet
+  , getEntries
   , module Core.PA
   , module Core.Basis
   ) where
@@ -60,7 +61,7 @@ showBra as = "⟨" ++ go as ++ "|"
 
 
 mkQV :: Basis a => [([a], PA)] -> QV a
-mkQV vals = QV (length (fst $ head vals)) (k vals) 
+mkQV vals = normalize $ QV (length (fst $ head vals)) (k vals) 
   where k = Map.fromList . Prelude.filter ((/= 0) . snd)
 
 norm :: QV a -> Double
@@ -82,3 +83,6 @@ observeV v = do
       Just (_, res) = find ((r <) . fst) accumulatedProbs
         -- never yields Nothing due to normalization
   return res
+
+getEntries :: QV a -> [([a], PA)]
+getEntries = toList . qvMap

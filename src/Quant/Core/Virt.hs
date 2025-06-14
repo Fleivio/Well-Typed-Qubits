@@ -6,6 +6,7 @@ module Core.Virt
   , unsafeSelectQ
   , appV
   , measureVirt
+  , printQS
   , measureVirtN) where
 
 import List.Vec
@@ -24,13 +25,19 @@ data Virt a n where
   Virt :: QR a -> [Int] -> Virt a n
 
 mkQ :: forall s a. (KnownNat s, Basis a) => [(Vec s a, PA)] -> IO (Virt a s)
-mkQ list = do 
+mkQ list = do
   qr <- qrFromList $ unsafeCoerce list
   return $ Virt qr [1..fromIntegral $ natVal (Proxy @s)]
 
 printQ :: Show a => Virt a acs -> IO ()
 printQ (Virt qr _) = do
   printQR qr
+
+printQS :: (Basis a, Show a) => Virt a acs -> IO ()
+printQS (Virt qr acs) = do
+  qv <- readIORef qr
+  let b = mkQV [(($ l) . flip (!!) <$> map pred acs, p) | (l, p) <- getEntries qv]
+  print b
 
 unsafeSelectQ ::
   forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
@@ -41,7 +48,7 @@ measureVirt ::
     => Virt a s -> Int -> IO a
 measureVirt (Virt qr acs) ix = observeQR qr (acs !! (ix - 1))
 
-measureVirtN :: 
+measureVirtN ::
   forall a s. Basis a
     => Virt a s -> [Int] -> IO [a]
 measureVirtN (Virt qr acs) ixs =
@@ -52,7 +59,7 @@ appV ::
   => OP a -> Virt a s -> IO ()
 appV f' (Virt ref acs) = do
   qv <- readIORef ref
-  let 
+  let
     op = gf $ qvSize qv
     fqv = appOP op qv
   writeIORef ref fqv
@@ -68,9 +75,9 @@ appV f' (Virt ref acs) = do
         ]
 
 decompose :: Eq a => [Int] -> [a] -> ([a], [a])
-decompose acs' as = 
-  let 
-    asZ = zip [(1 :: Int)..] as 
+decompose acs' as =
+  let
+    asZ = zip [(1 :: Int)..] as
     selected = [asZ !! pred i | i <- acs']
     rest = asZ \\ selected
   in (snd <$> selected, snd <$> rest)

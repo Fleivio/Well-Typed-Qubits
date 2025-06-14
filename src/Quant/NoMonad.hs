@@ -1,4 +1,4 @@
-module NoMonad(testNoMonad, entangleExample, adderExample) where
+module NoMonad(testNoMonad, entangleExample, adderExample, selectionExample, selectQ, qvTest) where
 
 import Core.Virt
 import List.SList
@@ -29,6 +29,15 @@ testNoMonad = do
   appV h v1
   printQ value
 
+selectionExample :: IO ()
+selectionExample = do
+  mem <- mkQ [(0:>1:>VNil, 1)] :: IO (Virt Bit 2)
+  printQS mem
+  let mem2 = selectQ (SNat @2 :- SNat @1 :- SNil) mem
+  printQS mem2
+  let mem3 = selectQ (SNat @1 :- SNil) mem2
+  printQS mem3
+
 entangleExample :: IO ()
 entangleExample = do
   value <- mkQ [(0:>0:>VNil, 1)]
@@ -53,3 +62,8 @@ adderExample = do
   appV cnot q_23      
   appV cnot q_12
   printQ mem       
+
+qvTest :: IO ()
+qvTest = do
+  let a = mkQV [([O], 1), ([I], 2)]
+  print a

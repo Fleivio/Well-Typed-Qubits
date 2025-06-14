@@ -86,16 +86,21 @@ toBool 0 = False
 toBool 1 = True
 
 zAny :: QBitAct 3 ()
-zAny = phaseOracle (not . toBool . sum)
+zAny = phaseOracle ([nl|0 0 0|] /=)
+
+zAnyTest :: IO ()
+zAnyTest = do 
+  putStrLn "\n\n----ZAny test----"
+  runQ (zAny >> sample) =<< [mkq|0 1 1|]
+
 
 grover :: QBitAct 3 () -> QBitAct 3 (Vec 3 Bit)
 grover zf = do
   let targets = [qb|1 2 3|]
-  
-  appAll_ (toState 0 >> h)
 
+  appAll_ h
   replicateM_ 2 ( 
-    zf >> parallel zAny
+    zf >> appAll_ h >> zAny >> appAll_ h
     )
   measureN targets
 
@@ -143,8 +148,10 @@ errorExample = do
 
 main :: IO ()
 main = do
+    zAnyTest
     testGrover
     -- testSqrtNot
-    -- testDeutsch
+    testDeutsch
+
     -- testAdder
     -- testOracle
