@@ -1,5 +1,6 @@
+{-# OPTIONS_GHC -Wno-x-partial #-}
 module Core.QR
-  ( QR(..)
+  ( QR
   , qrApp
   , printQR
   , showQR

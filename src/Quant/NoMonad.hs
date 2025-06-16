@@ -3,7 +3,6 @@ module NoMonad(testNoMonad, entangleExample, adderExample, selectionExample, sel
 import Core.Virt
 import List.SList
 import List.Vec
-import List.OvLabel
 
 h :: OP Bit
 h = mkOP [(([0],[0]),1),(([0],[1]),1),(([1],[0]),1),(([1],[1]),-1)]

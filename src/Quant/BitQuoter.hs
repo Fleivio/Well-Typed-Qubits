@@ -2,8 +2,6 @@ module BitQuoter(nl, mkq) where
 
 import List.Vec
 import Core.Virt
-import Text.Read (readMaybe)
-
 
 import Language.Haskell.TH hiding (Type)
 import Language.Haskell.TH.Quote

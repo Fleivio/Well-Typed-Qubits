@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module Main(main) where
 
@@ -148,10 +149,7 @@ errorExample = do
 
 main :: IO ()
 main = do
-    zAnyTest
     testGrover
-    -- testSqrtNot
+    testSqrtNot
     testDeutsch
-
-    -- testAdder
-    -- testOracle
+    testAdder
