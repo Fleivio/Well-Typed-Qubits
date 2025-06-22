@@ -1,14 +1,14 @@
 # Well Typed Qubits
 
-A Haskell-embedded DSL for simulation and composing quantum computations, featuring type-safety over qubit manipulation through type-level programming.
+A Haskell-embedded DSL for simulating and composing quantum computations, featuring type-safety in qubit manipulation through type-level programming.
 
 ## Features
-
-- Static garantee of no-cloning theorem
+- Static guarantee of the no-cloning theorem
 - Gate abstractions for common quantum gates
 - Monadic composition of quantum operations
 - Explicit qubit manipulation
-- Measurement, sampling and simulation
+- Measurement, sampling, and simulation
+- Static garantee of the no-cloning theorem
 
 ## Executing
 
@@ -48,6 +48,6 @@ cabal run
 
 ## Further Work
 
-- [ ] Implement interface to n-qubit circuits such as deutsch-jozsa, grover, shor, etc.
+- [ ] Implement interface to n-qubit circuits such as Deutsch-Jozsa, Grover, Shor, etc.
 - [ ] Implement writer monad to allow history tracking of operations.
 - [ ] Quotes for Matrix.
