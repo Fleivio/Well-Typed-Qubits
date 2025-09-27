@@ -1,7 +1,8 @@
-module List.Vec(Vec(..)) where
+module List.Vec(Vec(..), unsafeVec) where
 
 import Data.Kind
 import GHC.TypeLits
+
 import Unsafe.Coerce
 
 type Vec :: Natural -> Type -> Type
@@ -15,6 +16,9 @@ instance Functor (Vec n) where
 
 nListToList :: Vec n a -> [a]
 nListToList = unsafeCoerce
+
+unsafeVec :: KnownNat n => [a] -> Vec n a
+unsafeVec = unsafeCoerce
 
 instance (Show a) => Show (Vec n a) where
   show a = "#" ++ show (nListToList a)

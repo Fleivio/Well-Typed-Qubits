@@ -81,8 +81,7 @@ mapp_ sl op = do
 
 phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (Vec n b -> Bool) -> QAct b n ()
 phaseOracle f = do
-  let
-      op = mkOP @b
+  let op = mkOP @b
           [ ((b,b), if f $ unsafeCoerce b then -1 else 1)
            | b <- basis @b $ fromIntegral (natVal (Proxy @n))]
   vv <- ask

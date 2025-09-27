@@ -1,4 +1,4 @@
-module Core.Bit(Bit(..)) where
+module Core.Bit(Bit(..), toBool) where
 
 data Bit = O | I deriving (Ord, Read)
 
@@ -19,3 +19,8 @@ instance Eq Bit where
   O == O = True
   I == I = True
   _ == _ = False
+
+
+toBool :: Bit -> Bool
+toBool 0 = False
+toBool 1 = True

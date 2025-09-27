@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module QAct.QBitAct(
   QBitAct
   , module QAct.QAct
@@ -24,6 +25,7 @@ import QAct.QAct
 import Unsafe.Coerce
 import Control.Monad
 import Control.Monad.Reader
+import BitQuoter
 
 type QBitAct s a = QAct Bit s a
 
@@ -149,23 +151,23 @@ swap = qActMatrix [
 
 oracle :: forall ctrs trgs
   . ValidSelector (ctrs <++> trgs) (Length ctrs + Length trgs)
-  => (Vec (Length ctrs) Bit -> Bool) 
-  -> SList ctrs
-  -> SList trgs
+  => (Vec (Length ctrs) Bit -> Bool)  --control function
+  -> SList ctrs                       --controls
+  -> SList trgs                       --targets
   -> QBitAct (Length ctrs + Length trgs) ()
-oracle f control taget = do
+oracle enable control taget = do
   let
     ctrCount = length $ sListToList control
     trgCount = length $ sListToList taget
-    change = [((ctr ++ trg, ctr ++ flipTrg), 1 :: PA) |
+    change = [((ctr ++ trg, ctr ++ flipTrg), 1) |
             ctr <- basis @Bit ctrCount,
-            f $ unsafeCoerce ctr,
+            enable $ unsafeCoerce ctr,
             trg <- basis @Bit trgCount,
-            let flipTrg = negate <$> trg
+            let flipTrg = negate <$> trg --cnot
             ]
     unchange = [((ctr ++ trg, ctr ++ trg), 1) |
             ctr <- basis @Bit ctrCount,
-            not $ f $ unsafeCoerce ctr,
+            not $ enable $ unsafeCoerce ctr,
             trg <- basis @Bit trgCount
             ]
     op = mkOP (change ++ unchange)

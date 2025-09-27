@@ -108,15 +108,21 @@ qb = QuasiQuoter
   }
 
 slistExp :: String -> Q Exp
-slistExp str = do
-  let nums = words str
-  buildSList nums
+slistExp input
+  | '.' `elem` input = intervalGenerator input
+  | otherwise        = parseInts $ words input
 
-buildSList :: [String] -> Q Exp
-buildSList []     = [| SNil |]
-buildSList (x:xs)
+intervalGenerator :: String -> Q Exp
+intervalGenerator str 
+  = case break (== '.') str of
+    (lb, '.':ub) -> undefined -- TODO
+    _ -> error ""
+
+parseInts :: [String] -> Q Exp
+parseInts []     = [| SNil |]
+parseInts (x:xs)
   | all isNumber x = do
     let n = read x :: Integer
-    [| SNat @($(litT (numTyLit n))) :- $(buildSList xs) |]
-  | otherwise = [| ($(varE (mkName x))) :- $(buildSList xs) |] 
+    [| SNat @($(litT (numTyLit n))) :- $(parseInts xs) |]
+  | otherwise = [| ($(varE (mkName x))) :- $(parseInts xs) |] 
 

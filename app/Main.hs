@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE RankNTypes, ScopedTypeVariables #-}
 module Main(main) where
 
 import Quant
 import Control.Monad 
+import Data.Proxy (Proxy(..))
 
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
@@ -49,21 +51,25 @@ testAdder = do
 
 deutsch :: QBitAct 2 a -> QBitAct 2 Bit
 deutsch uf = do
-  app [qb|2|]    x
+  app [qb|2|] x
+  sample
   _ <- mapp [qb|1 2|] h
+  sample
   _ <- app [qb|1 2|] uf
+  sample
   app [qb|1|] h
+  sample
   measure #1
 
-testDeutsch :: IO ()
-testDeutsch = do
+testDeutsch :: (Bool -> Bool) -> IO ()
+testDeutsch f = do
     putStrLn "\n\n----Deutsch test----"
     mem <- [mkq|0 0|]
-    putStrLn "i. CNot:"
-    r <- runQ (deutsch cnot) mem
+    let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
+    r <- runQ (deutsch orac) mem
     case r of
-      0 -> print "cnot is constant"
-      1 -> print "cnot is balanced"
+      0 -> print "is constant"
+      1 -> print "is balanced"
 
 ------------------------------------------------------------------
 
@@ -74,7 +80,7 @@ teleport = do
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot
   app [qb|1|] h
-  [nl|control1 control2|] <- measureNBool [qb|1 2|]
+  [vec|control1 control2|] <- measureNBool [qb|1 2|]
   when control1 $ app [qb|3|] x
   when control2 $ app [qb|3|] z
 
@@ -82,12 +88,11 @@ teleport = do
 
 -- In progress
 
-toBool :: Bit -> Bool
-toBool 0 = False
-toBool 1 = True
+zAny :: forall n. KnownNat n => QBitAct n ()
+zAny = phaseOracle ([vec|n*1|] /=)
 
-zAny :: QBitAct 3 ()
-zAny = phaseOracle ([nl|0 0 0|] /=)
+zAny3 :: QBitAct 3 ()
+zAny3 = zAny @3
 
 zAnyTest :: IO ()
 zAnyTest = do 
@@ -95,8 +100,8 @@ zAnyTest = do
   runQ (zAny >> sample) =<< [mkq|0 1 1|]
 
 
-grover :: QBitAct 3 () -> QBitAct 3 (Vec 3 Bit)
-grover zf = do
+grover3 :: QBitAct 3 () -> QBitAct 3 (Vec 3 Bit)
+grover3 zf = do
   let targets = [qb|1 2 3|]
 
   appAll_ h
@@ -108,13 +113,35 @@ grover zf = do
 testGrover :: IO ()
 testGrover = do 
   putStrLn "\n\n----Grover test----"
-  outcome <- [mkq|0 0 0|] >>= runQ (grover $ phaseOracle ( == [nl|0 1 0|] )) 
+  outcome <- [mkq|0 0 0|] >>= runQ (grover3 $ phaseOracle ( == [vec|0 1 0|] )) 
   print outcome
+
+-- Grovern -------
+
+-- zAnyn :: KnownNat n => QBitAct n ()
+-- zAnyn = phaseOracle ([vec|n*0|] /=)
+
+
+
+
+-- test :: forall n. KnownNat n => Vec n
+-- test = [vec|n*1|]
+
+
+-- grovern :: KnownNat n => QBitAct n () -> QBitAct n ()
+-- grovern zf = do
+--   appAll_ h
+
+--   replicateM_ 2 ( 
+--     zf >> appAll_ h >> zAnyn >> appAll_ h
+--     )
+--   measureN targets
+--   return ()
 
 ------------------------------------------------------------------
 
 myOracle :: QBitAct 3 ()
-myOracle = oracle (\[nl|a b|] -> a == b) [qb|1 3|] [qb|2|]
+myOracle = oracle (\[vec|a b|] -> a == b) [qb|1 3|] [qb|2|]
 
 testOracle :: IO ()
 testOracle = do
@@ -149,7 +176,7 @@ errorExample = do
 
 main :: IO ()
 main = do
-    testGrover
-    testSqrtNot
-    testDeutsch
-    testAdder
+    -- testGrover
+    -- testSqrtNot
+    testDeutsch (const True)
+    -- testAdder
