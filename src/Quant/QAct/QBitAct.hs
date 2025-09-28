@@ -25,7 +25,8 @@ import QAct.QAct
 import Unsafe.Coerce
 import Control.Monad
 import Control.Monad.Reader
-import BitQuoter
+import Quoters.BitQuoter
+import Quoters.SListQuoter
 
 type QBitAct s a = QAct Bit s a
 

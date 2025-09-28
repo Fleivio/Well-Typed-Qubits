@@ -16,6 +16,7 @@ module QAct.QAct
   , module List.Vec
   , module List.SList
   , module Core.Virt
+  , measureAll
   ) where
 
 import Core.Virt
@@ -68,13 +69,19 @@ measureN ks = do
   result <- liftIO $ measureVirtN qv list
   return $ unsafeCoerce result
 
+measureAll :: (Basis b, KnownNat n) => QAct b n (Vec n b)
+measureAll = do
+  qv <- ask
+  k <- liftIO $ measureVirtAll qv
+  return $ unsafeCoerce k
+
 mapp :: ValidSelector acs n => SList acs -> QAct b 1 a -> QAct b n [a]
 mapp sl op = do
   qv <- ask
   let list = sListToList sl
   liftIO $ sequence [runQ op $ unsafeCoerce (unsafeSelectQ (unsafeCoerce [ix]) qv) | ix <- list]
 
-mapp_ :: ValidSelector acs n => SList acs -> QAct b 1 a -> QAct b n ()
+mapp_ :: forall n acs b a. KnownNat n => ValidSelector acs n => SList acs -> QAct b 1 a -> QAct b n ()
 mapp_ sl op = do 
   _ <- mapp sl op
   return ()

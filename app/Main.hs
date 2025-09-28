@@ -1,12 +1,13 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# LANGUAGE RankNTypes, ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes, ScopedTypeVariables, TypeFamilies, AllowAmbiguousTypes #-}
 module Main(main) where
 
 import Quant
-import Control.Monad 
+import Control.Monad
 import Data.Proxy (Proxy(..))
+import GHC.TypeLits
 
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
@@ -36,7 +37,7 @@ testAdder = do
     putStrLn "\n\n----Test adder----"
     putStrLn "Enter numbers to sum"
     putStrLn "x: "
-    a <- getLine    
+    a <- getLine
     putStrLn "y: "
     b <- getLine
     putStrLn "carryIn: "
@@ -89,34 +90,23 @@ teleport = do
 -- In progress
 
 zAny :: forall n. KnownNat n => QBitAct n ()
-zAny = phaseOracle ([vec|n*1|] /=)
+zAny = phaseOracle ([vec|n*0|] /=)
 
-zAny3 :: QBitAct 3 ()
-zAny3 = zAny @3
-
-zAnyTest :: IO ()
-zAnyTest = do 
-  putStrLn "\n\n----ZAny test----"
-  runQ (zAny >> sample) =<< [mkq|0 1 1|]
-
-
-grover3 :: QBitAct 3 () -> QBitAct 3 (Vec 3 Bit)
-grover3 zf = do
-  let targets = [qb|1 2 3|]
-
+grover :: forall n. KnownNat n => Int -> QBitAct n () -> QBitAct n (Vec n Bit)
+grover slCounter zf = do
   appAll_ h
-  replicateM_ 2 ( 
-    zf >> appAll_ h >> zAny >> appAll_ h
+  replicateM_ it (
+    zf >> appAll_ h >> zAny @n >> appAll_ h
     )
-  measureN targets
+  measureAll
+  where
+    it = ceiling $ (pi/4 :: Double) * sqrt((fromIntegral . natVal $ Proxy @n) / fromIntegral slCounter )  
 
 testGrover :: IO ()
-testGrover = do 
+testGrover = do
   putStrLn "\n\n----Grover test----"
-  outcome <- [mkq|0 0 0|] >>= runQ (grover3 $ phaseOracle ( == [vec|0 1 0|] )) 
+  outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|] ))
   print outcome
-
-
 
 ------------------------------------------------------------------
 
@@ -131,7 +121,7 @@ testOracle = do
   printQ mem
 
 ------------------------------------------------------------------
-  
+
 {-
 errorExample :: QBitAct 4 ()
 errorExample = do
@@ -152,15 +142,17 @@ errorExample = do
       You tried to select qubits with repetition [1, 1] -}
 -}
 
-vecTest :: forall s n. (KnownNat n, KnownNat s) => (Vec s Bit, Vec n Bit)
-vecTest = ([vec|s*1|], [vec|n*0|])
 
-vecTestRun :: IO ()
-vecTestRun = do
-  let (b, c) = vecTest @3 @2
-  print b
-  
+test2 :: SList [1, 2, 3, 4, 5, 6, 7]
+test2 = sListRange @(1) @(7)
+
+slTest :: SList [3, 4, 5, 6, 7]
+slTest = [qb|3.7|]
+
+-- asdasd :: forall n. (KnownNat n) => SList (NatRange 3 n)
+-- asdasd = [qb|3.n|]
+
 
 main :: IO ()
 main = do
-  vecTestRun
+  testGrover

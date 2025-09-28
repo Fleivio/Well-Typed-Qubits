@@ -42,8 +42,9 @@ library quantum
         QAct.QAct
         QAct.QBitAct
 
+        Quoters.BitQuoter
+        Quoters.SListQuoter
         NoMonad
-        BitQuoter
 
     build-depends:   
         base ^>=4.19.1.0,

@@ -3,18 +3,19 @@ module List.SList(
   , sListToList
   , Length
   , module GHC.TypeLits
-  , qb
   , type (<++>)
   , ValidSelector
-  , sListConcat) where
+  , sListConcat
+  , sListRange
+  
+  , NatRange) where
 
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
 import Fcf (If)
-import Language.Haskell.TH hiding (Type)
-import Language.Haskell.TH.Quote
-import Data.Char (isNumber)
+
+import Data.Proxy (Proxy(..))
 
 
 type SList :: [Natural] -> Type
@@ -33,7 +34,19 @@ type family (as :: [k]) <++> (bs :: [k]) :: [k] where
 sListConcat :: SList a -> SList b -> SList (a <++> b)
 sListConcat = unsafeCoerce (++)
 
-type family Length (as :: [k]) :: Nat where
+sListRange :: forall lb ub. (KnownNat lb, KnownNat ub) => SList (NatRange lb ub)
+sListRange = 
+  let list = fromIntegral <$> [natVal (Proxy @lb)..natVal (Proxy @ub)] :: [Int]
+  in unsafeCoerce list
+
+type NatRange :: Natural -> Natural -> [Natural]
+type family NatRange lb up where
+  NatRange ub ub = '[ub]
+  NatRange lb ub = If (ub <=? lb) 
+                    (TypeError (Text "SList lower bound is greater than the upper bound"))
+                    (lb ': NatRange (lb + 1) ub)
+
+type family Length (as :: [k]) :: Natural where
   Length '[] = 0
   Length (a ': as) = 1 + Length as
 
@@ -84,8 +97,8 @@ type NoCloningCheck xs
     (() :: Constraint) 
 
 type NoZeroCheck :: [Natural] -> Constraint
-type NoZeroCheck xs
-  = If (HasZero xs)
+type family NoZeroCheck xs where
+  NoZeroCheck xs = If (HasZero xs)
     (TypeError (
         Text "Zero qubit selection is not allowed" 
         :$$:
@@ -95,34 +108,10 @@ type NoZeroCheck xs
 
 type ValidSelector :: [Natural] -> Natural -> Constraint
 type ValidSelector xs n 
-  = (BoundCheck n xs, NoCloningCheck xs, NoZeroCheck xs)
+  = ( NoCloningCheck xs,BoundCheck n xs, NoZeroCheck xs)
 
----------------------------------------
+--------------------------
 
-qb :: QuasiQuoter
-qb = QuasiQuoter
-  { quoteExp  = slistExp
-  , quotePat  = undefined
-  , quoteType = undefined
-  , quoteDec  = undefined
-  }
-
-slistExp :: String -> Q Exp
-slistExp input
-  | '.' `elem` input = intervalGenerator input
-  | otherwise        = parseInts $ words input
-
-intervalGenerator :: String -> Q Exp
-intervalGenerator str 
-  = case break (== '.') str of
-    (lb, '.':ub) -> undefined -- TODO
-    _ -> error ""
-
-parseInts :: [String] -> Q Exp
-parseInts []     = [| SNil |]
-parseInts (x:xs)
-  | all isNumber x = do
-    let n = read x :: Integer
-    [| SNat @($(litT (numTyLit n))) :- $(parseInts xs) |]
-  | otherwise = [| ($(varE (mkName x))) :- $(parseInts xs) |] 
-
+data SelectionPattern (acs :: [Natural]) :: Type where
+  SingletonList :: SList acs -> SelectionPattern acs
+  RangeSelection :: SNat lb -> SNat up -> SelectionPattern '[lb, up]

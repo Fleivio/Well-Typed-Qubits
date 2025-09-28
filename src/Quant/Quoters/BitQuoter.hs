@@ -1,4 +1,4 @@
-module BitQuoter(vec, mkq) where
+module Quoters.BitQuoter(vec, mkq) where
 
 import List.Vec
 import Core.Virt
@@ -32,9 +32,7 @@ parseMultiplicationFactor s ex
   | all isDigit s = let k = read s :: Int 
                     in foldr (\x xs -> [|$x :> $xs|]) [|VNil|] $ replicate k ex
   | otherwise =
-    let sizeExpr = pure $
-                AppE (VarE (mkName "fromIntegral")) 
-                (AppE (VarE (mkName "natVal")) (ConE (mkName "Proxy") `AppTypeE` VarT (mkName s)))
+    let sizeExpr = [|fromIntegral $ natVal (Proxy @($(varT $ mkName s)))|]
     in [| unsafeVec @($(varT (mkName s))) $ replicate $sizeExpr $ex |]
 
 parseMultiplication :: String -> Q Exp
@@ -42,7 +40,6 @@ parseMultiplication inputString
       = case break (== '*') inputString of
         (r1, '*':r2) -> parseMultiplicationFactor r1 $ parseBit r2
         _ -> error ""
-
 
 parseNList :: String -> Q Exp
 parseNList input
