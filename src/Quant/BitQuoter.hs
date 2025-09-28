@@ -35,7 +35,7 @@ parseMultiplicationFactor s ex
     let sizeExpr = pure $
                 AppE (VarE (mkName "fromIntegral")) 
                 (AppE (VarE (mkName "natVal")) (ConE (mkName "Proxy") `AppTypeE` VarT (mkName s)))
-    in [|unsafeVec (replicate $sizeExpr $ex)|]
+    in [| unsafeVec @($(varT (mkName s))) $ replicate $sizeExpr $ex |]
 
 parseMultiplication :: String -> Q Exp
 parseMultiplication inputString 

@@ -17,7 +17,7 @@ instance Functor (Vec n) where
 nListToList :: Vec n a -> [a]
 nListToList = unsafeCoerce
 
-unsafeVec :: KnownNat n => [a] -> Vec n a
+unsafeVec :: forall n a. KnownNat n => [a] -> Vec n a
 unsafeVec = unsafeCoerce
 
 instance (Show a) => Show (Vec n a) where

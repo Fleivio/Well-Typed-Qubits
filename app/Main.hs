@@ -116,27 +116,7 @@ testGrover = do
   outcome <- [mkq|0 0 0|] >>= runQ (grover3 $ phaseOracle ( == [vec|0 1 0|] )) 
   print outcome
 
--- Grovern -------
 
--- zAnyn :: KnownNat n => QBitAct n ()
--- zAnyn = phaseOracle ([vec|n*0|] /=)
-
-
-
-
--- test :: forall n. KnownNat n => Vec n
--- test = [vec|n*1|]
-
-
--- grovern :: KnownNat n => QBitAct n () -> QBitAct n ()
--- grovern zf = do
---   appAll_ h
-
---   replicateM_ 2 ( 
---     zf >> appAll_ h >> zAnyn >> appAll_ h
---     )
---   measureN targets
---   return ()
 
 ------------------------------------------------------------------
 
@@ -172,11 +152,15 @@ errorExample = do
       You tried to select qubits with repetition [1, 1] -}
 -}
 
+vecTest :: forall s n. (KnownNat n, KnownNat s) => (Vec s Bit, Vec n Bit)
+vecTest = ([vec|s*1|], [vec|n*0|])
 
+vecTestRun :: IO ()
+vecTestRun = do
+  let (b, c) = vecTest @3 @2
+  print b
+  
 
 main :: IO ()
 main = do
-    -- testGrover
-    -- testSqrtNot
-    testDeutsch (const True)
-    -- testAdder
+  vecTestRun
