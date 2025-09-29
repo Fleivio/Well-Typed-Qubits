@@ -1,4 +1,4 @@
-module Quoters.BitQuoter(vec, mkq) where
+module Quoters.BitQuoter(vec, mkq, parseNList) where
 
 import List.Vec
 import Core.Virt

@@ -19,7 +19,10 @@ module QAct.QBitAct(
   , measureNBool
   , parallel
   , toState
-  , oracle) where
+  , oracle
+  , rx
+  , ry
+  , rz) where
 
 import QAct.QAct
 import Unsafe.Coerce
@@ -27,6 +30,7 @@ import Control.Monad
 import Control.Monad.Reader
 import Quoters.BitQuoter
 import Quoters.SListQuoter
+import Quoters.MatrixQuoter
 
 type QBitAct s a = QAct Bit s a
 
@@ -53,102 +57,115 @@ toState a = do
   when (k /= a) $ app [qb|1|] x
 
 h :: QBitAct 1 ()
-h = qActMatrix [
-      (([vec|0|], [vec|0|]), recip $ sqrt 2),
-      (([vec|0|], [vec|1|]), recip $ sqrt 2),
-      (([vec|1|], [vec|0|]), recip $ sqrt 2),
-      (([vec|1|], [vec|1|]), -(recip $ sqrt 2))
-    ]
+h = [matrix|
+    0 =[1/sqrt 2 ]=> 0
+    0 =[1/sqrt 2 ]=> 1
+    1 =[1/sqrt 2 ]=> 0
+    1 =[-1/sqrt 2]=> 1
+|]
 
 x :: QBitAct 1 ()
-x = qActMatrix [
-      (([vec|0|], [vec|1|]), 1),
-      (([vec|1|], [vec|0|]), 1)
-    ]
+x = [matrix|
+  0 =[1]=> 1
+  1 =[1]=> 0
+|] 
 
 y :: QBitAct 1 ()
-y = qActMatrix [
-      (([vec|0|], [vec|1|]), -1),
-      (([vec|1|], [vec|0|]), 1)
-    ]
-
+y = [matrix|
+  0 =[-1]=> 1
+  1 =[1 ]=> 0
+|]
 
 p :: Double -> QBitAct 1 ()
-p l = qActMatrix [
-      (([vec|0|], [vec|0|]), 1),
-      (([vec|1|], [vec|1|]), exp (0 :+ l))
-    ]
+p angle = [matrix|
+  0 =[1]=> 0
+  1 =[exp (0 :+ angle)]=> 1 
+|] 
+  
 
 z :: QBitAct 1 ()
-z = qActMatrix [
-      (([vec|0|], [vec|0|]), 1),
-      (([vec|1|], [vec|1|]), -1)
-    ]
+z = p pi
 
 s :: QBitAct 1 ()
-s = qActMatrix [
-      (([vec|0|], [vec|0|]), 1),
-      (([vec|1|], [vec|1|]), 0 :+ 1)
-    ]
+s = p (pi/2)
 
 t :: QBitAct 1 ()
-t = qActMatrix [
-      (([vec|0|], [vec|0|]), 1),
-      (([vec|1|], [vec|1|]), (1 :+ 1)/sqrt 2)
-    ]
+t = p (pi/8)
 
 cnot :: QBitAct 2 ()
-cnot = qActMatrix [
-      (([vec|0 0|], [vec|0 0|]), 1),
-      (([vec|0 1|], [vec|0 1|]), 1),
-      (([vec|1 0|], [vec|1 1|]), 1),
-      (([vec|1 1|], [vec|1 0|]), 1)
-    ]
+cnot = [matrix|
+  0 0 =[1]=> 0 0
+  0 1 =[1]=> 0 1
+  1 0 =[1]=> 1 1
+  1 1 =[1]=> 1 0 
+|]
 
 entangle :: QBitAct 2 ()
 entangle = do
-  app (SNat @1 :- SNil) h
-  app (SNat @1 :- SNat @2 :- SNil) cnot
+  app [qb|1|] h
+  app [qb|1 2|] cnot
 
 toffoli :: QBitAct 3 ()
-toffoli = qActMatrix [
-      (([vec|0 0 0|], [vec|0 0 0|]), 1),
-      (([vec|0 0 1|], [vec|0 0 1|]), 1),
-      (([vec|0 1 0|], [vec|0 1 0|]), 1),
-      (([vec|0 1 1|], [vec|1 1 1|]), 1),
-      (([vec|1 0 0|], [vec|1 0 0|]), 1),
-      (([vec|1 0 1|], [vec|1 0 1|]), 1),
-      (([vec|1 1 0|], [vec|1 1 1|]), 1),
-      (([vec|1 1 1|], [vec|1 1 0|]), 1)
-    ]
+toffoli = [matrix|
+  0 0 0 =[1]=> 0 0 0
+  0 0 1 =[1]=> 0 0 1
+  1 0 0 =[1]=> 1 0 0
+  1 0 1 =[1]=> 1 0 1
+  0 1 0 =[1]=> 0 1 0
+  0 1 1 =[1]=> 0 1 1
+  1 1 0 =[1]=> 1 1 1
+  1 1 1 =[1]=> 1 1 0
+|]
 
 cz :: QBitAct 2 ()
-cz = qActMatrix [
-      (([vec|0 0|], [vec|0 0|]), 1),
-      (([vec|0 1|], [vec|0 1|]), 1),
-      (([vec|1 0|], [vec|1 0|]), 1),
-      (([vec|1 1|], [vec|1 1|]), -1)
-    ]
+cz = [matrix|
+  0 0 =[1]=> 0 0
+  0 1 =[1]=> 0 1
+  1 0 =[1]=> 1 0
+  1 1 =[-1]=> 1 1
+|]  
 
 fredkin :: QBitAct 3 ()
-fredkin = qActMatrix [
-      (([vec|0 0 0|], [vec|0 0 0|]), 1),
-      (([vec|0 0 1|], [vec|0 0 1|]), 1),
-      (([vec|0 1 0|], [vec|0 1 0|]), 1),
-      (([vec|0 1 1|], [vec|0 1 1|]), 1),
-      (([vec|1 0 0|], [vec|1 0 0|]), 1),
-      (([vec|1 0 1|], [vec|1 1 0|]), 1),
-      (([vec|1 1 0|], [vec|1 0 1|]), 1),
-      (([vec|1 1 1|], [vec|1 1 1|]), 1)
-    ]
+fredkin = [matrix|
+  0 0 0 =[1]=> 0 0 0
+  0 0 1 =[1]=> 0 0 1
+  0 1 0 =[1]=> 0 1 0
+  0 1 1 =[1]=> 0 1 1
+  1 0 0 =[1]=> 1 0 0
+  1 0 1 =[1]=> 1 1 0
+  1 1 0 =[1]=> 1 0 1
+  1 1 1 =[1]=> 1 1 1
+  |]
 
 swap :: QBitAct 2 ()
-swap = qActMatrix [
-      (([vec|0 0|], [vec|0 0|]), 1),
-      (([vec|0 1|], [vec|1 0|]), 1),
-      (([vec|1 0|], [vec|0 1|]), 1),
-      (([vec|1 1|], [vec|1 1|]), 1)
-    ]
+swap = [matrix|
+  0 0 =[1]=> 0 0
+  0 1 =[1]=> 1 0
+  1 0 =[1]=> 0 1
+  1 1 =[1]=> 1 1
+|]
+
+rx :: Double -> QBitAct 1 ()
+rx angle = [matrix|
+  0 =[cos(angle/2) :+ 0]=> 0
+  0 =[0 :+ -sin (angle/2)]=> 1
+  1 =[0 :+ -sin (angle/2)]=> 0
+  1 =[cos(angle/2) :+ 0]=> 1
+|]
+
+ry :: Double -> QBitAct 1 ()
+ry angle = [matrix|
+  0 =[cos(angle/2) :+ 0]=> 0
+  0 =[sin (angle/2) :+ 0]=> 1
+  1 =[-sin (angle/2) :+ 0]=> 0
+  1 =[cos(angle/2) :+ 0]=> 1
+|]
+
+rz :: Double -> QBitAct 1 ()
+rz angle = [matrix|
+  0 =[exp(0 :+ -angle/2)]=> 0
+  1 =[exp(0 :+ angle/2)]=> 1
+|]
 
 oracle :: forall ctrs trgs
   . ValidSelector (ctrs <++> trgs) (Length ctrs + Length trgs)

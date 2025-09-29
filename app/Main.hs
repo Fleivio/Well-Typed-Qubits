@@ -21,16 +21,11 @@ testSqrtNot = do
 ------------------------------------------------------------------
 adder :: QBitAct 4 ()
 adder = do
-  let a = #1
-      b = #2
-      cIn = #3
-      cOut = #4
-
-  app [qb|a b cOut|]   toffoli
-  app [qb|a b|]        cnot
-  app [qb|b cIn cOut|] toffoli
-  app [qb|b cIn|]      cnot
-  app [qb|a b|]        cnot
+  app [qb|1 2 4|]   toffoli
+  app [qb|1 2|]        cnot
+  app [qb|2 3 4|] toffoli
+  app [qb|2 3|]      cnot
+  app [qb|1 2|]        cnot
 
 testAdder :: IO ()
 testAdder = do
@@ -53,13 +48,9 @@ testAdder = do
 deutsch :: QBitAct 2 a -> QBitAct 2 Bit
 deutsch uf = do
   app [qb|2|] x
-  sample
   _ <- mapp [qb|1 2|] h
-  sample
   _ <- app [qb|1 2|] uf
-  sample
   app [qb|1|] h
-  sample
   measure #1
 
 testDeutsch :: (Bool -> Bool) -> IO ()
@@ -105,6 +96,17 @@ testGrover = do
   putStrLn "\n\n----Grover test----"
   outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|] ))
   print outcome
+
+------------------------------------------------------------------
+
+vqeAnsatz :: Double -> Double -> QBitAct 2 ()
+vqeAnsatz theta1 theta2 = do
+  -- rotações variacionais em cada qubit
+  app [qb|1|] (rx theta1)
+  app [qb|2|] (rx theta2)
+
+  -- entanglement entre eles
+  app [qb|1 2|] cnot
 
 ------------------------------------------------------------------
 

@@ -44,6 +44,7 @@ library quantum
         Quoters.BitQuoter
         Quoters.SListQuoter
         Quoters.NatLabel
+        Quoters.MatrixQuoter
         NoMonad
 
     build-depends:   
@@ -52,6 +53,7 @@ library quantum
         random,
         template-haskell,
         first-class-families,
+        haskell-src-meta,
         mtl
 
     default-language: Haskell2010
