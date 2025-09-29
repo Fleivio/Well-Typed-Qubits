@@ -37,13 +37,13 @@ library quantum
         
         List.Vec
         List.SList
-        List.OvLabel
 
         QAct.QAct
         QAct.QBitAct
 
         Quoters.BitQuoter
         Quoters.SListQuoter
+        Quoters.NatLabel
         NoMonad
 
     build-depends:   

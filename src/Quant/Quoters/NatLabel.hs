@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-module List.OvLabel() where
+module Quoters.NatLabel() where
 
 import GHC.OverloadedLabels (IsLabel(..))
 import GHC.TypeLits
