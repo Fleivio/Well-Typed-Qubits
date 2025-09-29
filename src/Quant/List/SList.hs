@@ -109,9 +109,3 @@ type family NoZeroCheck xs where
 type ValidSelector :: [Natural] -> Natural -> Constraint
 type ValidSelector xs n 
   = ( NoCloningCheck xs,BoundCheck n xs, NoZeroCheck xs)
-
---------------------------
-
-data SelectionPattern (acs :: [Natural]) :: Type where
-  SingletonList :: SList acs -> SelectionPattern acs
-  RangeSelection :: SNat lb -> SNat up -> SelectionPattern '[lb, up]

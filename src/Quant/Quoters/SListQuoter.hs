@@ -22,7 +22,7 @@ intervalGenerator str
   = case break (== '.') str of
     (lb, '.':ub) 
       | all isDigit lb && all isDigit ub -> pure $ VarE (mkName "sListRange") `AppTypeE` LitT (NumTyLit (read lb))  `AppTypeE` LitT (NumTyLit (read ub))
-      | otherwise -> error "Invalid range syntax selection over qubits"
+      | otherwise -> pure $ VarE (mkName "sListRange") `AppTypeE` LitT (NumTyLit (read lb))  `AppTypeE` VarT (mkName ub)
     _ -> error "Invalid range syntax selection over qubits"
 
 parseInts :: [String] -> Q Exp

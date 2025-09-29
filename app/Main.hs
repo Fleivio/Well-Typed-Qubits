@@ -87,8 +87,6 @@ teleport = do
 
 ------------------------------------------------------------------
 
--- In progress
-
 zAny :: forall n. KnownNat n => QBitAct n ()
 zAny = phaseOracle ([vec|n*0|] /=)
 
@@ -119,38 +117,6 @@ testOracle = do
   mem <- [mkq|0 0 0|]
   runQ (mapp [qb|1 3|] h >> myOracle) mem
   printQ mem
-
-------------------------------------------------------------------
-
-{-
-errorExample :: QBitAct 4 ()
-errorExample = do
-  app [qb|1 2 3|] toffoli --fine
-  app [qb|1 2 5|] toffoli
-  {- Index out of bounds on Qubit selection
-       You got 4 qubits
-       But tried to select qubits [1, 2, 5] -}
-  app [qb|1|] cnot
-  {- Couldn't match type ‘2’ with ‘1’
-      Expected: QAct Bit (Length '[1]) ()
-        Actual: QBitAct 2 () -}
-  app [qb|0|] h
-  {- Zero qubit selection is not allowed
-      The qubit selection list starts from 1 -}
-  app [qb|1 1|] cnot
-  {- No Cloning Theorem Violation
-      You tried to select qubits with repetition [1, 1] -}
--}
-
-
-test2 :: SList [1, 2, 3, 4, 5, 6, 7]
-test2 = sListRange @(1) @(7)
-
-slTest :: SList [3, 4, 5, 6, 7]
-slTest = [qb|3.7|]
-
--- asdasd :: forall n. (KnownNat n) => SList (NatRange 3 n)
--- asdasd = [qb|3.n|]
 
 
 main :: IO ()
