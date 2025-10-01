@@ -5,10 +5,8 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 import Language.Haskell.Meta.Parse (parseExp)
 
-import Quoters.BitQuoter (vec, parseNList)
+import Quoters.BitQuoter (parseNList)
 import QAct.QAct (qActMatrix)
-import Core.PA (squareModulus)
-
 
 matrix :: QuasiQuoter
 matrix = QuasiQuoter
@@ -19,7 +17,7 @@ matrix = QuasiQuoter
   }
 
 isPower2 :: Int -> Bool
-isPower2 = ((==) <*> (fromInteger . round)) . logBase 2 . fromIntegral
+isPower2 = ((==) @Double <*> (fromInteger . round)) . logBase 2 . fromIntegral
 
 parseMatrix :: String -> Q Exp
 parseMatrix input

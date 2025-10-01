@@ -43,7 +43,7 @@ parallelAndSeq = do
   mem1 <- [mkq|1 0 0|] 
   mem2 <- [mkq|1 0 0|]
 
-  _ <- runQ (cnot <@> h) mem1 
+  _ <- runQ (cnot ||| h) mem1 
   _ <- runQ (app [qb|1 2|] cnot >> app [qb|3|] h) mem2
 
   qv1 <- getQV mem1

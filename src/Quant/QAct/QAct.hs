@@ -16,8 +16,8 @@ module QAct.QAct
   , measure
   , measureN
   , measureAll
-  , (<-@>)
-  , (<@>)
+  , (<|||)
+  , (|||)
   , phaseOracle
   , module List.Vec
   , module List.SList
@@ -114,6 +114,7 @@ measureAll = do
   return $ unsafeCoerce k
 
 --[PARALLEL]--------------------------------------------------------
+type Partition (n :: Natural) (m :: Natural) (k :: Natural) = (KnownNat n, KnownNat m, KnownNat k, n + m ~ k, m + n ~ k)
 
 
 phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (Vec n b -> Bool) -> QAct b n ()
@@ -124,11 +125,11 @@ phaseOracle f = do
   vv <- ask
   liftIO $ appV op vv
 
-(<-@>) :: forall n1 n2 n3 b a c. Partition n1 n2 n3
+(<|||) :: forall n1 n2 n3 b a c. Partition n1 n2 n3
   => QAct b n1 a
   -> QAct b n2 c
   -> QAct b n3 (a,c)
-act1 <-@> act2 = do
+act1 <||| act2 = do
   let 
     midBound = fromIntegral $ natVal (Proxy @n1)
     upperBound = fromIntegral $ natVal (Proxy @n2) + natVal (Proxy @n1)  
@@ -144,7 +145,5 @@ act1 <-@> act2 = do
   b <- liftIO $ runQ act2 adaptedRight
   return (a,b)
 
-(<@>) :: Partition n1 n2 n3 => QAct b n1 a -> QAct b n2 c -> QAct b n3 ()
-a1 <@> a2 = (a1 <-@> a2) >> return ()
-
-type Partition (n :: Natural) (m :: Natural) (k :: Natural) = (KnownNat n, KnownNat m, KnownNat k, n + m ~ k, m + n ~ k)
+(|||) :: Partition n1 n2 n3 => QAct b n1 a -> QAct b n2 c -> QAct b n3 ()
+a1 ||| a2 = (a1 <||| a2) >> return ()

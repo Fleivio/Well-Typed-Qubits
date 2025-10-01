@@ -22,5 +22,5 @@ instance Eq Bit where
 
 
 toBool :: Bit -> Bool
-toBool 0 = False
-toBool 1 = True
+toBool O = False
+toBool I = True

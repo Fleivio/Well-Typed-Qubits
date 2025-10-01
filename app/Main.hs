@@ -10,6 +10,16 @@ import Quant
 import Control.Monad
 import Data.Proxy (Proxy(..))
 
+-------------------------------------------------------------------
+
+testDoubH :: IO ()
+testDoubH = do
+  mem <- [mkq|0|]
+  runQ (h >> h >> sample) mem
+
+-------------------------------------------------------------------
+
+
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
 
@@ -68,11 +78,11 @@ testDeutsch f = do
 
 deutschJ :: forall n a. Partition (n-1) 1 n => QBitAct n a -> QBitAct n (Vec (n-1) Bit)
 deutschJ uf = do
-  appAll_ @(n-1) qid <@> x
+  appAll_ @(n-1) qid ||| x
   appAll_ h
   _ <- uf
-  appAll_ @(n-1) h <@> qid
-  (output, _) <- measureAll <-@> qid
+  appAll_ @(n-1) h ||| qid
+  (output, _) <- measureAll <||| qid
   return output
 
 testDeutschJ :: (Bool -> Bool) -> IO ()
@@ -85,12 +95,11 @@ testDeutschJ f = do
       0 -> print "is constant"
       1 -> print "is balanced"
 
-------------------------------------------------------------------
+-----------------------------------------------------------------
 
 teleport :: QBitAct 3 ()
 teleport = do
-  app [qb|1|] x
-  app [qb|2|] h
+  x ||| h ||| qid
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot
   app [qb|1|] h
@@ -135,18 +144,18 @@ testOracle = do
 
 test :: forall n. Partition (n-1) 1 n => QBitAct (n-1) () -> QBitAct n ()
 test qq = do
-  qq <@> h
+  qq ||| h
   return ()
 
 test2 :: forall n m k. Partition m k n 
   => QBitAct m () -> QBitAct k () -> QBitAct n ()
 test2 mm kk = do
-  mm <@> kk
+  mm ||| kk
   return ()
 
 test3 :: forall n. Partition (n-1) 1 n => QBitAct n ()
 test3 = do 
-  appAll_ qid <@> h
+  appAll_ qid ||| h
 
 runTest3 :: IO ()
 runTest3 = do
@@ -156,7 +165,7 @@ runTest3 = do
 
 test4 :: forall n m k. Partition k m n => QBitAct k () -> QBitAct m () -> QBitAct n ()
 test4 p1 p2 = do 
-  p1 <@> p2
+  p1 ||| p2
   sample
 
 runTest4 :: IO ()
@@ -164,7 +173,26 @@ runTest4 = do
   mem <- [mkq|1 0 0|]
   runQ (test4 cnot h) mem
 
+---------------------------------------
+
+debugF :: QBitAct 2 ()
+debugF = do
+  sample
+  liftIO $ print "que coisa"
+  _ <- measureAll
+  return ()
+
+myControlled :: QBitAct 3 ()
+myControlled = controlledAct (\[vec|c|] -> c == 1) [qb|1|] [qb|2 3|] cnot
+
+testControlled :: IO ()
+testControlled = do
+  mem <- [mkq|0 0 1|]
+  runQ (appAll_ h) mem 
+
+  runQ myControlled mem
+  printQ mem
 
 main :: IO ()
 main = do
-  runTest4
+  testControlled

@@ -10,7 +10,8 @@ module Core.Virt
   , measureVirtN
   , measureVirtAll
   , unsafeSelectQInt
-  , getQV) where
+  , getQV
+  , unsafeFromQV) where
 
 import List.Vec
 import List.SList
@@ -31,6 +32,11 @@ mkQ :: forall s a. (KnownNat s, Basis a) => [(Vec s a, PA)] -> IO (Virt a s)
 mkQ list = do
   qr <- qrFromList $ unsafeCoerce list
   return $ Virt qr [1..fromIntegral $ natVal (Proxy @s)]
+
+unsafeFromQV :: forall n a. (Basis a) => QV a -> Int -> IO (Virt a n)
+unsafeFromQV qv size = do
+  qr <- newIORef qv
+  return $ Virt qr [1..size] 
 
 getQV :: Virt a n -> IO (QV a)
 getQV (Virt qr _) = readIORef qr

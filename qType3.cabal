@@ -24,7 +24,7 @@ library quantum
         TypeFamilies, UndecidableInstances, TypeFamilies, RankNTypes, TypeOperators, 
         StandaloneKindSignatures, FlexibleInstances, ScopedTypeVariables, FlexibleContexts,
         LambdaCase, MultiParamTypeClasses, PolyKinds, OverloadedLabels, InstanceSigs, TemplateHaskell
-        , QuasiQuotes, PatternSynonyms
+        , QuasiQuotes, PatternSynonyms, TupleSections
 
     other-modules:
         Core.Bit

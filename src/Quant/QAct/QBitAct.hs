@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-name-shadowing -Wno-incomplete-uni-patterns #-}
 module QAct.QBitAct(
   QBitAct
   , module QAct.QAct
@@ -19,6 +19,8 @@ module QAct.QBitAct(
   , measureBool
   , measureNBool
   , parallel
+  , controlledAct
+  , controlled
   , toState
   , oracle
   , rx
@@ -29,9 +31,9 @@ import QAct.QAct
 import Unsafe.Coerce
 import Control.Monad
 import Control.Monad.Reader
-import Quoters.BitQuoter
 import Quoters.SListQuoter
 import Quoters.MatrixQuoter
+import Data.Proxy (Proxy(..))
 
 type QBitAct s a = QAct Bit s a
 
@@ -75,7 +77,7 @@ x :: QBitAct 1 ()
 x = [matrix|
   0 =[1]=> 1
   1 =[1]=> 0
-|] 
+|]
 
 y :: QBitAct 1 ()
 y = [matrix|
@@ -87,8 +89,8 @@ p :: Double -> QBitAct 1 ()
 p angle = [matrix|
   0 =[1]=> 0
   1 =[exp (0 :+ angle)]=> 1 
-|] 
-  
+|]
+
 
 z :: QBitAct 1 ()
 z = p pi
@@ -130,7 +132,7 @@ cz = [matrix|
   0 1 =[1]=> 0 1
   1 0 =[1]=> 1 0
   1 1 =[-1]=> 1 1
-|]  
+|]
 
 fredkin :: QBitAct 3 ()
 fredkin = [matrix|
@@ -196,7 +198,73 @@ oracle enable control taget = do
             trg <- basis @Bit trgCount
             ]
     op = mkOP (change ++ unchange)
-  
+
   qv <- ask
   let qv' = unsafeSelectQ (control `sListConcat` taget) qv
   liftIO $ appV op qv'
+
+
+controlled :: forall controls targs. (KnownNat controls, KnownNat targs) 
+  => (Vec controls Bit -> Bool) -> Matrix targs Bit -> Matrix (controls + targs) Bit
+controlled enable op = 
+  let change = [ ((c ++ t, c ++ t), prb) 
+                | c <- basis @Bit (fromIntegral $ natVal (Proxy @controls))
+                , enable $ unsafeCoerce c
+                , t <- basis @Bit (fromIntegral $ natVal (Proxy @targs)) 
+                , t' <- basis @Bit (fromIntegral $ natVal (Proxy @targs))
+                , let prb = case filter (\(a,_) -> a == unsafeCoerce (t,t')) op of
+                              [] -> 0
+                              (_, a):_ -> a ]
+      unchange = [ ((c ++ t, c ++ t), 1) 
+                 | c <- basis @Bit (fromIntegral $ natVal (Proxy @controls))
+                 , not $ enable $ unsafeCoerce c
+                 , t <- basis @Bit (fromIntegral $ natVal (Proxy @targs)) ]
+  in unsafeCoerce $ change ++ unchange
+
+-- probably wrong
+controlledAct :: 
+  KnownNat (Length controls) => KnownNat (Length targets)
+  => ValidSelector (controls <++> targets) (Length controls + Length targets)
+  => (Vec (Length controls) Bit -> Bool)
+  -> SList controls
+  -> SList targets
+  -> QBitAct (Length targets) ()
+  -> QBitAct (Length controls + Length targets) ()
+controlledAct enable controls targets op = do
+  vv <- ask
+
+  let
+    controlIndexes = sListToList controls
+    controlCount = length controlIndexes
+
+    targetIndexes = sListToList targets
+    targetCount = length targetIndexes
+
+    unchange = [ ((ctrl ++ targ, ctrl ++ targ), 1.0)
+      | ctrl <- basis @Bit controlCount
+      , not $ enable $ unsafeCoerce ctrl
+      , targ <- basis @Bit targetCount]
+
+  outputs <- liftIO $ sequence
+      [ (targ,) <$> let
+                      newvv = unsafeFromQV (mkQV [(targ, 1)]) targetCount
+                      newop = do
+                        op
+                        v1 <- ask
+                        liftIO $ getQV v1
+                    in newvv >>= runQ newop
+      | targ <- basis @Bit targetCount]
+
+  let
+    change = [ ((ctrl ++ targ, ctrl ++ output), prob)
+      | ctrl <- basis @Bit controlCount
+      , enable $ unsafeCoerce ctrl
+      , targ <- basis @Bit targetCount
+      , (output, prob) <- getEntries . snd . head $ filter ((==targ) . fst) outputs]
+
+    controlledOp = mkOP (change ++ unchange)
+
+  liftIO $ print controlledOp
+
+  let vv' = unsafeSelectQ (controls `sListConcat` targets) vv
+  liftIO $ appV controlledOp vv'
