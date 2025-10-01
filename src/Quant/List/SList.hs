@@ -5,17 +5,13 @@ module List.SList(
   , module GHC.TypeLits
   , type (<++>)
   , ValidSelector
-  , sListConcat
-  , sListRange
-  
-  , NatRange) where
+  , sListConcat) where
 
 import Data.Kind
 import GHC.TypeLits
 import Unsafe.Coerce
 import Fcf (If)
 
-import Data.Proxy (Proxy(..))
 
 
 type SList :: [Natural] -> Type
@@ -34,18 +30,6 @@ type family (as :: [k]) <++> (bs :: [k]) :: [k] where
 sListConcat :: SList a -> SList b -> SList (a <++> b)
 sListConcat = unsafeCoerce (++)
 
-sListRange :: forall lb ub. (KnownNat lb, KnownNat ub) => SList (NatRange lb ub)
-sListRange = 
-  let list = fromIntegral <$> [natVal (Proxy @lb)..natVal (Proxy @ub)] :: [Int]
-  in unsafeCoerce list
-
-type NatRange :: Natural -> Natural -> [Natural]
-type family NatRange lb up where
-  NatRange ub ub = '[ub]
-  NatRange lb ub = If (ub <=? lb) 
-                    (TypeError (Text "SList lower bound is greater than the upper bound"))
-                    (lb ': NatRange (lb + 1) ub)
-
 type family Length (as :: [k]) :: Natural where
   Length '[] = 0
   Length (a ': as) = 1 + Length as
@@ -60,7 +44,7 @@ type family Elem a as
 type HasDupl :: [Natural] -> Bool
 type family HasDupl xs
  where
-  HasDupl '[] = 'False
+  HasDupl '[]       = 'False
   HasDupl (x ': xs) = If (Elem x xs) 'True (HasDupl xs)
 
 type Maximum :: [Natural] -> Natural
@@ -73,7 +57,7 @@ type family Maximum a
 type HasZero :: [Natural] -> Bool
 type family HasZero n 
   where 
-    HasZero '[] = 'False
+    HasZero '[]       = 'False
     HasZero (0 ': xs) = 'True
     HasZero (x ': xs) = HasZero xs
 

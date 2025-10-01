@@ -47,6 +47,9 @@ instance Show a => Show (QV a) where
             0 -> mempty
             _ -> showPAMultiplicative pa ++ showKet a
 
+instance Eq a => Eq (QV a) where
+  QV n1 a == QV n2 b = n1 == n2 && a == b
+
 showKet :: Show a => [a] -> String
 showKet as = "|" ++ go as ++ "⟩"
   where 

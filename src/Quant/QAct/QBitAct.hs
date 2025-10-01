@@ -2,6 +2,7 @@
 module QAct.QBitAct(
   QBitAct
   , module QAct.QAct
+  , qid
   , h
   , x
   , y
@@ -55,6 +56,12 @@ toState :: Bit -> QBitAct 1 ()
 toState a = do
   k <- measure (SNat @1)
   when (k /= a) $ app [qb|1|] x
+
+qid :: QBitAct 1 ()
+qid = [matrix|
+  0 =[1]=> 0
+  1 =[1]=> 1
+|]
 
 h :: QBitAct 1 ()
 h = [matrix|

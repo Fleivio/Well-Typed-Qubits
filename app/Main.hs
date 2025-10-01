@@ -2,12 +2,13 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# LANGUAGE RankNTypes, ScopedTypeVariables, TypeFamilies, AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Main(main) where
 
 import Quant
 import Control.Monad
 import Data.Proxy (Proxy(..))
-import GHC.TypeLits
 
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
@@ -49,7 +50,7 @@ deutsch :: QBitAct 2 a -> QBitAct 2 Bit
 deutsch uf = do
   app [qb|2|] x
   _ <- mapp [qb|1 2|] h
-  _ <- app [qb|1 2|] uf
+  _ <- uf
   app [qb|1|] h
   measure #1
 
@@ -59,6 +60,27 @@ testDeutsch f = do
     mem <- [mkq|0 0|]
     let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
     r <- runQ (deutsch orac) mem
+    case r of
+      0 -> print "is constant"
+      1 -> print "is balanced"
+
+------------------------------------------------------------------
+
+deutschJ :: forall n a. Partition (n-1) 1 n => QBitAct n a -> QBitAct n (Vec (n-1) Bit)
+deutschJ uf = do
+  appAll_ @(n-1) qid <@> x
+  appAll_ h
+  _ <- uf
+  appAll_ @(n-1) h <@> qid
+  (output, _) <- measureAll <-@> qid
+  return output
+
+testDeutschJ :: (Bool -> Bool) -> IO ()
+testDeutschJ f = do
+    putStrLn "\n\n----Deutsch test----"
+    mem <- [mkq|0 0|]
+    let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
+    [vec|r|] <- runQ (deutschJ orac) mem
     case r of
       0 -> print "is constant"
       1 -> print "is balanced"
@@ -99,17 +121,6 @@ testGrover = do
 
 ------------------------------------------------------------------
 
-vqeAnsatz :: Double -> Double -> QBitAct 2 ()
-vqeAnsatz theta1 theta2 = do
-  -- rotações variacionais em cada qubit
-  app [qb|1|] (rx theta1)
-  app [qb|2|] (rx theta2)
-
-  -- entanglement entre eles
-  app [qb|1 2|] cnot
-
-------------------------------------------------------------------
-
 myOracle :: QBitAct 3 ()
 myOracle = oracle (\[vec|a b|] -> a == b) [qb|1 3|] [qb|2|]
 
@@ -120,7 +131,40 @@ testOracle = do
   runQ (mapp [qb|1 3|] h >> myOracle) mem
   printQ mem
 
+-------------------------------------------------------------------
+
+test :: forall n. Partition (n-1) 1 n => QBitAct (n-1) () -> QBitAct n ()
+test qq = do
+  qq <@> h
+  return ()
+
+test2 :: forall n m k. Partition m k n 
+  => QBitAct m () -> QBitAct k () -> QBitAct n ()
+test2 mm kk = do
+  mm <@> kk
+  return ()
+
+test3 :: forall n. Partition (n-1) 1 n => QBitAct n ()
+test3 = do 
+  appAll_ qid <@> h
+
+runTest3 :: IO ()
+runTest3 = do
+  mem <- [mkq|0 0 0|]
+  runQ test3 mem
+  printQ mem
+
+test4 :: forall n m k. Partition k m n => QBitAct k () -> QBitAct m () -> QBitAct n ()
+test4 p1 p2 = do 
+  p1 <@> p2
+  sample
+
+runTest4 :: IO ()
+runTest4 = do
+  mem <- [mkq|1 0 0|]
+  runQ (test4 cnot h) mem
+
 
 main :: IO ()
 main = do
-  testGrover
+  runTest4

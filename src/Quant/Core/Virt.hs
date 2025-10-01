@@ -3,12 +3,14 @@ module Core.Virt
   , module Core.QR
   , mkQ
   , printQ
+  , printQS
   , unsafeSelectQ
   , appV
   , measureVirt
-  , printQS
   , measureVirtN
-  , measureVirtAll) where
+  , measureVirtAll
+  , unsafeSelectQInt
+  , getQV) where
 
 import List.Vec
 import List.SList
@@ -30,6 +32,9 @@ mkQ list = do
   qr <- qrFromList $ unsafeCoerce list
   return $ Virt qr [1..fromIntegral $ natVal (Proxy @s)]
 
+getQV :: Virt a n -> IO (QV a)
+getQV (Virt qr _) = readIORef qr
+
 printQ :: Show a => Virt a acs -> IO ()
 printQ (Virt qr _) = do
   printQR qr
@@ -39,6 +44,9 @@ printQS (Virt qr acs) = do
   qv <- readIORef qr
   let b = mkQV [(($ l) . flip (!!) <$> map pred acs, p) | (l, p) <- getEntries qv]
   print b
+
+unsafeSelectQInt :: forall n m a. [Int] -> Virt a n -> Virt a m
+unsafeSelectQInt sl (Virt qr acs) = Virt qr ((acs !!) . pred <$> sl)
 
 unsafeSelectQ ::
   forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)

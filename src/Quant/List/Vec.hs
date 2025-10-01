@@ -1,4 +1,4 @@
-module List.Vec(Vec(..), unsafeVec) where
+module List.Vec(Vec(..), unsafeVec, vecToList) where
 
 import Data.Kind
 import GHC.TypeLits
@@ -12,19 +12,19 @@ data Vec n a where
 infixr 5 :>
 
 instance Functor (Vec n) where
-  fmap f ls = unsafeCoerce $ f <$> nListToList ls
+  fmap f ls = unsafeCoerce $ f <$> vecToList ls
 
-nListToList :: Vec n a -> [a]
-nListToList = unsafeCoerce
+vecToList :: Vec n a -> [a]
+vecToList = unsafeCoerce
 
 unsafeVec :: forall n a. KnownNat n => [a] -> Vec n a
 unsafeVec = unsafeCoerce
 
 instance (Show a) => Show (Vec n a) where
-  show a = "#" ++ show (nListToList a)
+  show a = "#" ++ show (vecToList a)
 
 instance (Eq a) => Eq (Vec n a) where
-  a == b = nListToList a == nListToList b
+  a == b = vecToList a == vecToList b
 
 instance Foldable (Vec n) where
-  foldr f b ta = foldr f b (nListToList ta)
+  foldr f b ta = foldr f b (vecToList ta)

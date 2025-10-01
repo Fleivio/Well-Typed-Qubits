@@ -52,32 +52,3 @@ parseEntries inputs = [|qActMatrix $buildindList |]
 
     tupleEntries = zip3 parsedEntries parsedOuts parsedDeltas
     buildindList = foldr (\(e,o,d) acc -> [| (($e, $o), $d) : $acc |]) [|[]|] tupleEntries
-
-{-
-
-fredkin :: QBitAct 3 ()
-fredkin = qActMatrix [
-      (([vec|0 0 0|], [vec|0 0 0|]), 1),
-      (([vec|0 0 1|], [vec|0 0 1|]), 1),
-      (([vec|0 1 0|], [vec|0 1 0|]), 1),
-      (([vec|0 1 1|], [vec|0 1 1|]), 1),
-      (([vec|1 0 0|], [vec|1 0 0|]), 1),
-      (([vec|1 0 1|], [vec|1 1 0|]), 1),
-      (([vec|1 1 0|], [vec|1 0 1|]), 1),
-      (([vec|1 1 1|], [vec|1 1 1|]), 1)
-    ]
-
-fredkin :: QBitAct 3 ()
-fredkin = [matrix|
-0 0 0 =[1]=> 0 0 0
-
-      (([vec|0 0 0|], [vec|0 0 0|]), 1),
-      (([vec|0 0 1|], [vec|0 0 1|]), 1),
-      (([vec|0 1 0|], [vec|0 1 0|]), 1),
-      (([vec|0 1 1|], [vec|0 1 1|]), 1),
-      (([vec|1 0 0|], [vec|1 0 0|]), 1),
-      (([vec|1 0 1|], [vec|1 1 0|]), 1),
-      (([vec|1 1 0|], [vec|1 0 1|]), 1),
-      (([vec|1 1 1|], [vec|1 1 1|]), 1)
-    |]
--}
