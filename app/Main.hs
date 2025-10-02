@@ -30,13 +30,27 @@ testSqrtNot = do
     runQ (sample >> sqrtNot >> sample >> sqrtNot >> sample) mem
 
 ------------------------------------------------------------------
-adder :: QBitAct 4 ()
+adder :: QBitAct 5 ()
 adder = do
-  app [qb|1 2 4|]   toffoli
-  app [qb|1 2|]        cnot
-  app [qb|2 3 4|] toffoli
-  app [qb|2 3|]      cnot
-  app [qb|1 2|]        cnot
+  let a = #1; b = #2; sum = #3; cin = #4; cout = #5; 
+
+  app [qb|a sum|] cnot
+  app [qb|b sum|] cnot
+  app [qb|a b cout|] toffoli
+  app [qb|a cin cout|] toffoli
+  app [qb|b cin cout|] toffoli
+  app [qb|cin sum|] cnot
+
+-- adder8 :: QBitAct 17 ()
+-- adder8 = do
+--   app [qb|4 8 12 17 16|] adder
+--   app [qb|3 7 11 16 15|] adder
+--   app [qb|2 6 10 15 14|] adder
+--   app [qb|1 5 9  14 13|] adder
+
+--   app [qb|1.4|] sample
+--   app [qb|5.8|] sample
+--   app [qb|9.12|] sample
 
 testAdder :: IO ()
 testAdder = do
@@ -49,17 +63,24 @@ testAdder = do
     putStrLn "carryIn: "
     carry <- getLine
 
-    mem <- mkQ [(read a :> read b :> read carry :> 0 :> VNil, 1)]
+    mem <- mkQ [(read a :> read b :> 0 :> read carry :> 0:> VNil, 1)]
     putStrLn "\nPerformin quantum operations..."
     putStrLn "|x y result carryOut>"
     runQ (adder >> sample) mem
+
+-- testAdder8 :: IO ()
+-- testAdder8 = do
+--   mem <- [mkq|17*0|]
+  
+--   runQ adder8 mem
+
 
 ------------------------------------------------------------------
 
 deutsch :: QBitAct 2 a -> QBitAct 2 Bit
 deutsch uf = do
-  app [qb|2|] x
-  _ <- mapp [qb|1 2|] h
+  app   [qb|2|]   x
+  mapp_ [qb|1 2|] h
   _ <- uf
   app [qb|1|] h
   measure #1
@@ -88,7 +109,7 @@ deutschJ uf = do
 testDeutschJ :: (Bool -> Bool) -> IO ()
 testDeutschJ f = do
     putStrLn "\n\n----Deutsch test----"
-    mem <- [mkq|0 0|]
+    mem <- [mkq|2*0|]
     let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
     [vec|r|] <- runQ (deutschJ orac) mem
     case r of
@@ -99,7 +120,8 @@ testDeutschJ f = do
 
 teleport :: QBitAct 3 ()
 teleport = do
-  x ||| h ||| qid
+  app [qb|1|] x 
+  app [qb|2|] h 
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot
   app [qb|1|] h
@@ -195,4 +217,4 @@ testControlled = do
 
 main :: IO ()
 main = do
-  testControlled
+  print "a"
