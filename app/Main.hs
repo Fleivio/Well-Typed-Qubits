@@ -120,7 +120,7 @@ testDeutschJ f = do
 
 teleport :: QBitAct 3 ()
 teleport = do
-  app [qb|1|] x 
+  app [qb|0|] x 
   app [qb|2|] h 
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot

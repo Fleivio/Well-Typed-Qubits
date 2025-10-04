@@ -10,8 +10,8 @@ module List.SList(
 
 import Data.Kind
 import GHC.TypeLits
+import Data.Type.Bool
 import Unsafe.Coerce
-import Fcf (If)
 import Data.Proxy (Proxy(..))
 
 type SList :: [Natural] -> Type
