@@ -29,7 +29,7 @@ showQR ref = do
 printQR :: Show a => QR a -> IO ()
 printQR ref = do
   qval <- readIORef ref
-  putStrLn $ show qval
+  print qval
 
 observeQR :: Basis a => QR a -> Int -> IO a 
 observeQR ref ix = do

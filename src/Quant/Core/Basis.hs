@@ -8,7 +8,7 @@ class Ord a => Basis a where
 instance Basis Bit where
   basis' = [1, 0]
 
-basis :: forall a. Basis a => Int -> [[a]]
+basis :: forall a n. (Integral n, Basis a) => n -> [[a]]
 basis 0 = [[]]
 basis n = do 
   k <- basis' @a

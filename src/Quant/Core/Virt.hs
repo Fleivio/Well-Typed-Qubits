@@ -52,11 +52,11 @@ printQS (Virt qr acs) = do
   print b
 
 unsafeSelectQInt :: forall n m a. [Int] -> Virt a n -> Virt a m
-unsafeSelectQInt sl (Virt qr acs) = Virt qr ((acs !!) . pred <$> sl)
+unsafeSelectQInt sl (Virt qr acs) = Virt qr [acs !! pred ix | ix <- sl]
 
 unsafeSelectQ ::
   forall nacs n a. SList nacs -> Virt a n -> Virt a (Length nacs)
-unsafeSelectQ sl (Virt qr acs) = Virt qr ((acs !!) . pred <$> sListToList sl)
+unsafeSelectQ sl (Virt qr acs) = Virt qr [acs !! pred ix | ix <- sListToList sl]
 
 measureVirtAll :: Basis a => Virt a s -> IO [a]
 measureVirtAll (Virt qr acs) = sequence [observeQR qr ix | ix <- acs]

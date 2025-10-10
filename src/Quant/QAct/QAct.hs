@@ -23,6 +23,7 @@ module QAct.QAct
   , module List.SList
   , module Core.Virt
   , Partition
+  , liftQ
   ) where
 
 import Core.Virt
@@ -121,7 +122,7 @@ phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (Vec n b -> Bool) ->
 phaseOracle f = do
   let op = mkOP @b
           [ ((b,b), if f $ unsafeCoerce b then -1 else 1)
-           | b <- basis @b $ fromIntegral (natVal (Proxy @n))]
+           | b <- basis @b $ natVal (Proxy @n)]
   vv <- ask
   liftIO $ appV op vv
 
@@ -147,3 +148,13 @@ act1 <||| act2 = do
 
 (|||) :: Partition n1 n2 n3 => QAct b n1 a -> QAct b n2 c -> QAct b n3 ()
 a1 ||| a2 = (a1 <||| a2) >> return ()
+
+liftQ :: forall a n. (KnownNat n, Basis a) => (Vec n a -> Vec n a) -> QAct a n ()
+liftQ op = qActMatrix $ [unsafeCoerce ((a, op $ unsafeCoerce a), 1) | a <- basis @a $ natVal (Proxy @n)]
+
+control :: forall a n. (KnownNat n, Basis a) => (Vec n a -> Bool) -> (Vec n a -> Vec n a) -> QAct a n ()
+control enable op 
+  = qActMatrix $
+    [unsafeCoerce ((a, op $ unsafeCoerce a), 1) | a <- basis @a $ natVal (Proxy @n), enable $ unsafeCoerce a]
+    ++
+    [unsafeCoerce ((a, op $ unsafeCoerce a), 1) | a <- basis @a $ natVal (Proxy @n), not . enable $ unsafeCoerce a]

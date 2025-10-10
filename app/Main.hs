@@ -41,16 +41,6 @@ adder = do
   app [qb|b cin cout|] toffoli
   app [qb|cin sum|] cnot
 
--- adder8 :: QBitAct 17 ()
--- adder8 = do
---   app [qb|4 8 12 17 16|] adder
---   app [qb|3 7 11 16 15|] adder
---   app [qb|2 6 10 15 14|] adder
---   app [qb|1 5 9  14 13|] adder
-
---   app [qb|1.4|] sample
---   app [qb|5.8|] sample
---   app [qb|9.12|] sample
 
 testAdder :: IO ()
 testAdder = do
@@ -67,13 +57,6 @@ testAdder = do
     putStrLn "\nPerformin quantum operations..."
     putStrLn "|x y result carryOut>"
     runQ (adder >> sample) mem
-
--- testAdder8 :: IO ()
--- testAdder8 = do
---   mem <- [mkq|17*0|]
-  
---   runQ adder8 mem
-
 
 ------------------------------------------------------------------
 
@@ -120,7 +103,7 @@ testDeutschJ f = do
 
 teleport :: QBitAct 3 ()
 teleport = do
-  app [qb|0|] x 
+  app [qb|1|] x 
   app [qb|2|] h 
   app [qb|2 3|] cnot
   app [qb|1 2|] cnot
@@ -217,4 +200,6 @@ testControlled = do
 
 main :: IO ()
 main = do
-  print "a"
+  testGrover
+  testAdder
+  testControlled

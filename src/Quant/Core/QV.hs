@@ -22,8 +22,7 @@ import Data.List
 import Data.Map as Map
 import System.Random (Random (randomR), getStdRandom)
 
-data QV a = QV
-  {
+data QV a = QV {
     qvSize :: Int,
     qvMap :: Map [a] PA
   } 

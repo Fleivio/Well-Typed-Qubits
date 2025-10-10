@@ -52,54 +52,35 @@ type family Elem a as
   Elem a (a ': as) = 'True
   Elem a (b ': as) = Elem a as
 
-type HasDupl :: [Natural] -> Bool
-type family HasDupl xs
- where
-  HasDupl '[]       = 'False
-  HasDupl (x ': xs) = If (Elem x xs) 'True (HasDupl xs)
-
-type Maximum :: [Natural] -> Natural
-type family Maximum a
- where
-  Maximum '[]       = TypeError (Text "Unable to Eval Maximum of a empty list")
-  Maximum (x : '[]) = x
-  Maximum (x : xs)  = If (x <=? Maximum xs) (Maximum xs) x
-
-type HasZero :: [Natural] -> Bool
-type family HasZero n 
-  where 
-    HasZero '[]       = 'False
-    HasZero (0 ': xs) = 'True
-    HasZero (x ': xs) = HasZero xs
-
-type BoundCheck :: Natural -> [Natural] -> Constraint
-type BoundCheck n xs 
-  = If (Maximum xs <=? n) (() :: Constraint) 
-    (TypeError (
+type family BoundCheck (n :: Natural) (ns :: [Natural]) :: Constraint where
+  BoundCheck n '[]    = ()
+  BoundCheck n (k:ks) = If (k <=? n) (BoundCheck n ks)
+        (TypeError (
         Text "Index out of bounds on Qubit selection" 
         :$$: 
-        Text "You got " :<>: ShowType n :<>: Text " qubits" :$$: Text "But tried to select qubits " :<>: ShowType xs
+        Text "You got " :<>: ShowType n :<>: Text " qubits" :$$: Text "But tried to select qubit no" :<>: ShowType k
         ))
 
-type NoCloningCheck :: [Natural] -> Constraint
-type NoCloningCheck xs
-  = If (HasDupl xs)
+type family NoCloningCheck (xs :: [Natural]) :: Constraint
+  where
+  NoCloningCheck '[] = ()
+  NoCloningCheck (x ': xs) = If (x `Elem` xs)
     (TypeError (
         Text "No Cloning Theorem Violation" 
         :$$: 
-        Text "You tried to select qubits with repetition " :<>: ShowType xs
+        Text "You've tried to select qubits with repetition: " :<>: ShowType x
         ))
-    (() :: Constraint) 
+    (NoCloningCheck xs) 
 
-type NoZeroCheck :: [Natural] -> Constraint
-type family NoZeroCheck xs where
-  NoZeroCheck xs = If (HasZero xs)
-    (TypeError (
-        Text "Zero qubit selection is not allowed" 
-        :$$:
-        Text "The qubit selection list starts from 1"
-        ))
-    (() :: Constraint)
+type family NoZeroCheck (xs :: [Natural]) :: Constraint
+  where
+    NoZeroCheck '[] = ()
+    NoZeroCheck (0 : xs) = (TypeError (
+                            Text "Zero qubit selection is not allowed" 
+                            :$$:
+                            Text "The qubit selection list starts from 1"
+                            ))
+    NoZeroCheck (x : xs) = NoZeroCheck xs
 
 type ValidSelector :: [Natural] -> Natural -> Constraint
 type ValidSelector xs n 
