@@ -91,7 +91,7 @@ testDeutsch f = do
     putStrLn "\n\n----Deutsch test----"
     mem <- [mkq|0 0|]
     let orac = orc (\[vec|k _|] -> f $ toBool k)
-                   (\[vec|a b|] -> [vec|a (negate b)|])
+                   (\[vec|a b|] -> [vec|a (lnegate b)|])
 
     r <- runQ (deutsch orac) mem
     case r of
@@ -102,7 +102,8 @@ testDeutsch f = do
 
 deutschJ :: forall n a. Partition (n-1) 1 n => QBitAct n a -> QBitAct n (Vec (n-1) Bit)
 deutschJ uf = do
-  appAll_ @(n-1) qid ||| x
+  app (SNat @n :- SNil) x
+  -- appAll_ @(n-1) qid ||| x
   appAll_ h
   _ <- uf
   appAll_ @(n-1) h ||| qid
@@ -115,7 +116,7 @@ testDeutschJ f = do
     mem <- [mkq|3*0|]
 
     let orac = orc (\[vec|a b _|] -> f (toBool a) (toBool b))
-                   (\[vec|a b r|] -> [vec|a b (negate r)|])
+                   (\[vec|a b r|] -> [vec|a b (lnegate r)|])
 
     v <- runQ (deutschJ orac) mem
     case v of
@@ -163,9 +164,11 @@ testGrover = do
   outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|] ))
   print outcome
 
+-------
 
-
+clone :: QBitAct 2 ()
+clone = liftQ (\[vec|a b|] -> [vec|(lnegate b) a|])
 
 main :: IO ()
 main = do
-  print "quantum"
+  print "aa"

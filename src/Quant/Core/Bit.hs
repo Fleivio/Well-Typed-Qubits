@@ -1,4 +1,5 @@
-module Core.Bit(Bit(..), toBool) where
+{-# LANGUAGE LinearTypes #-}
+module Core.Bit(Bit(..), toBool, lnegate) where
 
 data Bit = O | I deriving (Ord, Read)
 
@@ -24,3 +25,7 @@ instance Eq Bit where
 toBool :: Bit -> Bool
 toBool O = False
 toBool I = True
+
+lnegate :: Bit %1 -> Bit
+lnegate O = 1 
+lnegate I = 0 

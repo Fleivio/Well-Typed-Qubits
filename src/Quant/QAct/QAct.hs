@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use void" #-}
+{-# LANGUAGE LinearTypes #-}
 module QAct.QAct
   ( QAct
   , Matrix
@@ -27,6 +28,7 @@ module QAct.QAct
   , control
   , orc
   , controlM
+  , lmap
   ) where
 
 import Core.Virt
@@ -93,16 +95,6 @@ mapp_ :: forall n acs b a. (KnownNat n, ValidSelector acs n, KnownNat (Length ac
 mapp_ sl op = do
   app_ sl (appAll op)
 
--- scanq :: (KnownNat n, KnownNat m) => QAct b n a -> QAct b m ()
--- scanq op = do
---   let n = natVal (Proxy @n)
---       m = natVal (Proxy @m)
---   if n >= m 
---     then
---       return ()
---     else
---       app [qb|1..n|] op
-
 --[MEASURE]--------------------------------------------------------
 
 sample :: (Basis b, Show b) => QAct b s ()
@@ -155,14 +147,18 @@ act1 <||| act2 = do
 (|||) :: Partition n1 n2 n3 => QAct b n1 a -> QAct b n2 c -> QAct b n3 ()
 a1 ||| a2 = (a1 <||| a2) >> return ()
 
-liftQ :: forall a n. (KnownNat n, Basis a) => (Vec n a -> Vec n a) -> QAct a n ()
+liftQ :: forall a n. (KnownNat n, Basis a) => (Vec n a %1 -> Vec n a) -> QAct a n ()
 liftQ op = qActMatrix $ [unsafeCoerce ((a, op (unsafeCoerce a)), 1) 
                   | a <- basis @a $ natVal (Proxy @n)]
 
 --[CONTROLLS]--------------------------------------------------------
 
+lmap :: (a %1 -> a) -> Vec n a %1 -> Vec n a
+lmap _ VNil = VNil 
+lmap f (v:>vs) = f v :> lmap f vs 
+
 control :: forall a n m k. (Partition n m k, Show a, Basis a) 
-  => (Vec n a -> Bool) -> (Vec m a -> Vec m a) -> QAct a k ()
+  => (Vec n a -> Bool) -> (Vec m a %1 -> Vec m a) -> QAct a k ()
 control enable f
   = do
   let op = [((a ++ b, a ++ unsafeCoerce (unsafeCoerce f $ unsafeCoerce b)), 1)
@@ -206,7 +202,7 @@ phaseOracle f = do
   liftIO $ appV op vv
 
 orc :: forall n a. (KnownNat n, Show a, Basis a) 
-  => (Vec n a -> Bool) -> (Vec n a -> Vec n a) -> QAct a n ()
+  => (Vec n a -> Bool) -> (Vec n a %1 -> Vec n a) -> QAct a n ()
 orc enable f = do
   let op1 = [((unsafeCoerce a, r), 1) 
             | a <- basis @a $ natVal (Proxy @n)

@@ -83,5 +83,5 @@ type family NoZeroCheck (xs :: [Natural]) :: Constraint
     NoZeroCheck (x : xs) = NoZeroCheck xs
 
 type ValidSelector :: [Natural] -> Natural -> Constraint
-type ValidSelector xs n 
-  = ( NoCloningCheck xs,BoundCheck n xs, NoZeroCheck xs)
+type ValidSelector xs n
+  = (NoCloningCheck xs, BoundCheck n xs, NoZeroCheck xs)

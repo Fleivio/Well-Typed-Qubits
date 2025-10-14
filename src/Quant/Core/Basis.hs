@@ -1,4 +1,4 @@
-module Core.Basis(basis, Basis, Bit(..), toBool) where
+module Core.Basis(basis, Basis, Bit(..), module Core.Bit) where
 
 import Core.Bit
 

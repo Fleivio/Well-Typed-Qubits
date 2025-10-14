@@ -31,10 +31,8 @@ module QAct.QBitAct(
 import QAct.QAct
 import Unsafe.Coerce
 import Control.Monad
-import Control.Monad.Reader
 import Quoters.SListQuoter
 import Quoters.MatrixQuoter
-import Data.Proxy (Proxy(..))
 import Quoters.BitQuoter (vec)
 
 type QBitAct s a = QAct Bit s a
@@ -93,7 +91,6 @@ p angle = qActMatrix [matrix|
   1 =[exp (0 :+ angle)]=> 1 
 |]
 
-
 z :: QBitAct 1 ()
 z = p pi
 
@@ -104,13 +101,15 @@ t :: QBitAct 1 ()
 t = p (pi/8)
 
 cnot :: QBitAct 2 ()
-cnot = control (== [vec|1|]) (fmap negate)
+cnot = control (== [vec|1|]) (\[vec|x|] -> [vec|(lnegate x)|])
 
 toffoli :: QBitAct 3 ()
-toffoli = control (== [vec|1 1|]) (fmap negate) 
+toffoli = control (== [vec|1 1|]) (\[vec|x|] -> [vec|(lnegate x)|])
 
-cnotn :: forall k l n. Partition k l n => QBitAct n ()
-cnotn = control (== [vec|k*1|]) (fmap negate)
+cnotn :: forall k l n. Partition k l n 
+      => QBitAct n ()
+cnotn = control (== [vec|k*1|]) 
+        (\[vec|x|] -> [vec|(lnegate x)|])
 
 entangle :: QBitAct 2 ()
 entangle = do
