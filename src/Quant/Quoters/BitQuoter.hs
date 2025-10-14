@@ -7,7 +7,7 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 import Data.Char (isDigit)
 import Data.Proxy (Proxy(..))
-
+import Language.Haskell.Meta.Parse (parseExp)
 
 vec :: QuasiQuoter
 vec = QuasiQuoter
@@ -20,11 +20,30 @@ vec = QuasiQuoter
 parseBit :: String -> Q Exp
 parseBit "1" = [| 1 |]
 parseBit "0" = [| 0 |]
-parseBit _   = error "Bit should be 1 or 0"
+parseBit k   =
+  case parseExp k of
+    Left e -> error e
+    Right a -> return a
+
+splitParenAware :: String -> [String]
+splitParenAware = go 0 "" []
+  where
+    go _ acc toks [] =
+      let acc' = dropWhile (== ' ') acc
+      in if null acc' then reverse toks else reverse (acc' : toks)
+    go n acc toks (x:xs)
+      | x == '('  = go (n+1) (acc ++ [x]) toks xs
+      | x == ')'  = go (n-1) (acc ++ [x]) toks xs
+      | x == ' ' && n == 0 =
+          let acc' = dropWhile (== ' ') acc
+          in if null acc'
+             then go n "" toks xs
+             else go n "" (acc':toks) xs
+      | otherwise = go n (acc ++ [x]) toks xs
 
 parseBits :: String -> Q Exp
 parseBits input = do
-  let bitList = parseBit <$> words input
+  let bitList = parseBit <$> splitParenAware input
   foldr (\x acc -> [|$x :> $acc|]) [|VNil|] bitList 
 
 parseMultiplicationFactor :: String -> Q Exp -> Q Exp
@@ -49,7 +68,10 @@ parseNList input
 parseNListPat :: String -> Q Pat
 parseNListPat input = do
   let vars = words input
-  foldr (\var acc ->  [p| $(varP (mkName var)) :> $acc |]) [p| VNil |] vars
+  foldr (\var acc -> if var `elem` ["1", "0"] 
+                        then [p| $(litP $ IntegerL $ read var) :> $acc |] 
+                        else [p| $(varP (mkName var)) :> $acc |]) 
+        [p| VNil |] vars
 
 ---------------------------------
 

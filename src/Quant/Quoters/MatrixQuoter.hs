@@ -6,7 +6,6 @@ import Language.Haskell.TH.Quote
 import Language.Haskell.Meta.Parse (parseExp)
 
 import Quoters.BitQuoter (parseNList)
-import QAct.QAct (qActMatrix)
 
 matrix :: QuasiQuoter
 matrix = QuasiQuoter
@@ -27,7 +26,7 @@ parseMatrix input
     validLines = filter (not . all (`elem` [' ', '\t'])) $ filter (not.null) $ lines input
 
 parseEntries :: [String] -> Q Exp
-parseEntries inputs = [|qActMatrix $buildindList |]
+parseEntries inputs = [|$buildindList |]
   where
     rowMatch row
       = case break (== '=') row of

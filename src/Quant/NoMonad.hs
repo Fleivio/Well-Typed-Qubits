@@ -1,4 +1,5 @@
-module NoMonad(testNoMonad, entangleExample, adderExample, selectionExample, selectQ, qvTest) where
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module NoMonad() where
 
 import Core.Virt
 import List.SList

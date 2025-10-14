@@ -1,9 +1,7 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE LinearTypes #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# LANGUAGE RankNTypes, ScopedTypeVariables, TypeFamilies, AllowAmbiguousTypes #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Main(main) where
 
 import Quant
@@ -16,6 +14,14 @@ testDoubH :: IO ()
 testDoubH = do
   mem <- [mkq|0|]
   runQ (h >> h >> sample) mem
+  printQ mem
+
+testEntangle :: IO ()
+testEntangle = do
+  putStrLn "\n\n----Test entangle----"
+  mem <- [mkq|0 0|]
+  runQ (app [qb|1|] h >> cnot) mem
+  printQ mem
 
 -------------------------------------------------------------------
 
@@ -53,10 +59,22 @@ testAdder = do
     putStrLn "carryIn: "
     carry <- getLine
 
-    mem <- mkQ [(read a :> read b :> 0 :> read carry :> 0:> VNil, 1)]
+    mem <- [mkq|(read a) (read b) 0 (read carry) 0|]
     putStrLn "\nPerformin quantum operations..."
     putStrLn "|x y result carryOut>"
     runQ (adder >> sample) mem
+
+------------------------------------------------------------------
+
+cnot6 :: QBitAct 7 ()
+cnot6 = cnotn @6
+
+testCnot6 :: IO ()
+testCnot6 = do
+  putStrLn "\n\n----CNOT test----"
+  m <- [mkq|0 0 0 0 0 0 0|]
+  runQ ((appAll_ h ||| qid) >> cnot6) m
+  printQ m
 
 ------------------------------------------------------------------
 
@@ -72,7 +90,9 @@ testDeutsch :: (Bool -> Bool) -> IO ()
 testDeutsch f = do
     putStrLn "\n\n----Deutsch test----"
     mem <- [mkq|0 0|]
-    let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
+    let orac = orc (\[vec|k _|] -> f $ toBool k)
+                   (\[vec|a b|] -> [vec|a (negate b)|])
+
     r <- runQ (deutsch orac) mem
     case r of
       0 -> print "is constant"
@@ -89,28 +109,38 @@ deutschJ uf = do
   (output, _) <- measureAll <||| qid
   return output
 
-testDeutschJ :: (Bool -> Bool) -> IO ()
+testDeutschJ :: (Bool -> Bool -> Bool) -> IO ()
 testDeutschJ f = do
     putStrLn "\n\n----Deutsch test----"
-    mem <- [mkq|2*0|]
-    let orac = oracle (\[vec|k|] -> f $ toBool k) [qb|1|] [qb|2|]
-    [vec|r|] <- runQ (deutschJ orac) mem
-    case r of
-      0 -> print "is constant"
-      1 -> print "is balanced"
+    mem <- [mkq|3*0|]
+
+    let orac = orc (\[vec|a b _|] -> f (toBool a) (toBool b))
+                   (\[vec|a b r|] -> [vec|a b (negate r)|])
+
+    v <- runQ (deutschJ orac) mem
+    case v of
+      [vec|0 0|] -> print "is constant"
+      _ -> print "is balanced"
 
 -----------------------------------------------------------------
 
 teleport :: QBitAct 3 ()
 teleport = do
-  app [qb|1|] x 
-  app [qb|2|] h 
-  app [qb|2 3|] cnot
+  app [qb|1|] sample
+  app [qb|2 3|] entangle
   app [qb|1 2|] cnot
   app [qb|1|] h
+
   [vec|control1 control2|] <- measureNBool [qb|1 2|]
-  when control1 $ app [qb|3|] x
-  when control2 $ app [qb|3|] z
+  when control2 $ app [qb|3|] x
+  when control1 $ app [qb|3|] z
+  app [qb|3|] sample
+
+testTeleport :: IO ()
+testTeleport = do
+  m <- [mkq|0 0 0|]
+  runQ (app [qb|1|] (x >> h) >> teleport) m
+  printQ m
 
 ------------------------------------------------------------------
 
@@ -133,73 +163,9 @@ testGrover = do
   outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|] ))
   print outcome
 
-------------------------------------------------------------------
 
-myOracle :: QBitAct 3 ()
-myOracle = oracle (\[vec|a b|] -> a == b) [qb|1 3|] [qb|2|]
 
-testOracle :: IO ()
-testOracle = do
-  putStrLn "\n\n----Oracle test----"
-  mem <- [mkq|0 0 0|]
-  runQ (mapp [qb|1 3|] h >> myOracle) mem
-  printQ mem
-
--------------------------------------------------------------------
-
-test :: forall n. Partition (n-1) 1 n => QBitAct (n-1) () -> QBitAct n ()
-test qq = do
-  qq ||| h
-  return ()
-
-test2 :: forall n m k. Partition m k n 
-  => QBitAct m () -> QBitAct k () -> QBitAct n ()
-test2 mm kk = do
-  mm ||| kk
-  return ()
-
-test3 :: forall n. Partition (n-1) 1 n => QBitAct n ()
-test3 = do 
-  appAll_ qid ||| h
-
-runTest3 :: IO ()
-runTest3 = do
-  mem <- [mkq|0 0 0|]
-  runQ test3 mem
-  printQ mem
-
-test4 :: forall n m k. Partition k m n => QBitAct k () -> QBitAct m () -> QBitAct n ()
-test4 p1 p2 = do 
-  p1 ||| p2
-  sample
-
-runTest4 :: IO ()
-runTest4 = do
-  mem <- [mkq|1 0 0|]
-  runQ (test4 cnot h) mem
-
----------------------------------------
-
-debugF :: QBitAct 2 ()
-debugF = do
-  sample
-  liftIO $ print "que coisa"
-  _ <- measureAll
-  return ()
-
-myControlled :: QBitAct 3 ()
-myControlled = controlledAct (\[vec|c|] -> c == 1) [qb|1|] [qb|2 3|] cnot
-
-testControlled :: IO ()
-testControlled = do
-  mem <- [mkq|0 0 1|]
-  runQ (appAll_ h) mem 
-
-  runQ myControlled mem
-  printQ mem
 
 main :: IO ()
 main = do
-  testGrover
-  testAdder
-  testControlled
+  print "quantum"
