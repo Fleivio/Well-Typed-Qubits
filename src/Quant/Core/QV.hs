@@ -39,7 +39,7 @@ instance Basis a => Semigroup (QV a) where
 
 instance Show a => Show (QV a) where 
   show qv =
-    intercalate " + " $ do
+    intercalate " \n " $ do
       (a, pa) <- toList $ qvMap qv
       return
         $ case pa of

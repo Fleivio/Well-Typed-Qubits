@@ -29,6 +29,9 @@ module QAct.QAct
   , orc
   , controlM
   , lmap
+  , matrixBuilder
+  , printMatrix
+  , matrixToList
   ) where
 
 import Core.Virt
@@ -39,6 +42,8 @@ import Control.Monad.Reader
 import Data.Kind
 import Unsafe.Coerce
 import Data.Data (Proxy(..))
+import Data.Maybe (fromMaybe)
+import Data.List (intercalate)
 
 type QAct :: Type -> Natural -> Type -> Type
 type QAct b s a = ReaderT (Virt b s) IO a
@@ -121,8 +126,6 @@ measureAll = do
   return $ unsafeCoerce k
 
 --[PARALLEL]--------------------------------------------------------
-type Partition (n :: Natural) (m :: Natural) (k :: Natural) 
-  = (KnownNat n, KnownNat m, KnownNat k, n + m ~ k, m + n ~ k)
 
 (<|||) :: forall n1 n2 n3 b a c. Partition n1 n2 n3
   => QAct b n1 a
@@ -148,16 +151,16 @@ act1 <||| act2 = do
 a1 ||| a2 = (a1 <||| a2) >> return ()
 
 liftQ :: forall a n. (KnownNat n, Basis a) => (Vec n a %1 -> Vec n a) -> QAct a n ()
-liftQ op = qActMatrix $ [unsafeCoerce ((a, op (unsafeCoerce a)), 1) 
+liftQ op = qActMatrix $ [unsafeCoerce ((a, op (unsafeCoerce a)), 1)
                   | a <- basis @a $ natVal (Proxy @n)]
 
 --[CONTROLLS]--------------------------------------------------------
 
 lmap :: (a %1 -> a) -> Vec n a %1 -> Vec n a
-lmap _ VNil = VNil 
-lmap f (v:>vs) = f v :> lmap f vs 
+lmap _ VNil = VNil
+lmap f (v:>vs) = f v :> lmap f vs
 
-control :: forall a n m k. (Partition n m k, Show a, Basis a) 
+control :: forall a n m k. (Partition n m k, Show a, Basis a)
   => (Vec n a -> Bool) -> (Vec m a %1 -> Vec m a) -> QAct a k ()
 control enable f
   = do
@@ -166,28 +169,28 @@ control enable f
             , enable $ unsafeCoerce a
             , b <- basis @a $ natVal (Proxy @m)]
           ++
-          [((a ++ b, a ++ b), 1) 
+          [((a ++ b, a ++ b), 1)
             | a <- basis @a $ natVal (Proxy @n)
             , not . enable $ unsafeCoerce a
             , b <- basis @a $ natVal (Proxy @m)] :: [(([a],[a]), PA)]
   qActMatrix (unsafeCoerce op :: Matrix k s)
 
-controlM :: forall a n m k. (Partition n m k, Show a, Basis a) 
+controlM :: forall a n m k. (Partition n m k, Show a, Basis a)
   => (Vec n a -> Bool) -> Matrix m a -> QAct a k ()
 controlM enable f = qActMatrix $ controlled enable f
 
-controlled :: forall controls targs a. (Basis a, KnownNat controls, KnownNat targs) 
+controlled :: forall controls targs a. (Basis a, KnownNat controls, KnownNat targs)
   => (Vec controls a -> Bool) -> Matrix targs a -> Matrix (controls + targs) a
-controlled enable op = 
-  let change = [ ((c ++ t, c ++ t), prb) 
+controlled enable op =
+  let change = [ ((c ++ t, c ++ t), prb)
                 | c <- basis @a (natVal (Proxy @controls))
                 , enable $ unsafeCoerce c
-                , t <- basis @a (natVal (Proxy @targs)) 
+                , t <- basis @a (natVal (Proxy @targs))
                 , t' <- basis @a (natVal (Proxy @targs))
                 , let prb = case filter (\(a,_) -> a == unsafeCoerce (t,t')) op of
                               [] -> 0
                               (_, a):_ -> a ]
-      unchange = [ ((c ++ t, c ++ t), 1) 
+      unchange = [ ((c ++ t, c ++ t), 1)
                  | c <- basis @a (natVal (Proxy @controls))
                  , not $ enable $ unsafeCoerce c
                  , t <- basis @a (natVal (Proxy @targs)) ]
@@ -201,18 +204,41 @@ phaseOracle f = do
   vv <- ask
   liftIO $ appV op vv
 
-orc :: forall n a. (KnownNat n, Show a, Basis a) 
+orc :: forall n a. (KnownNat n, Show a, Basis a)
   => (Vec n a -> Bool) -> (Vec n a %1 -> Vec n a) -> QAct a n ()
 orc enable f = do
-  let op1 = [((unsafeCoerce a, r), 1) 
+  let op1 = [((unsafeCoerce a, r), 1)
             | a <- basis @a $ natVal (Proxy @n)
             , enable $ unsafeCoerce a
             , let r = unsafeCoerce f $ unsafeCoerce a] :: [((Vec n a, Vec n a), PA)]
-      op2 = 
-            [((unsafeCoerce a, unsafeCoerce a), 1) 
+      op2 =
+            [((unsafeCoerce a, unsafeCoerce a), 1)
             | a <- basis @a $ natVal (Proxy @n)
             , not $ enable $ unsafeCoerce a] :: [((Vec n a, Vec n a), PA)]
   liftIO $ print op1
   liftIO $ print op2
   qActMatrix $ unsafeCoerce (op1 ++ op2)
 
+
+-----------------------------------------------------------------------------------
+
+matrixBuilder :: forall n b. (KnownNat n, Basis b) => (Int -> Int -> PA) -> Matrix n b
+matrixBuilder f =
+  let sz = fromIntegral $ natVal $ Proxy @n
+      bas = basis @b sz
+      range = [0..pred(2^sz)]
+  in [((unsafeCoerce (bas !! j), unsafeCoerce (bas !! k)), f j k) | j <- range, k <- range] :: [((Vec n b, Vec n b), PA)]
+
+matrixToList :: forall b s. (KnownNat s, Basis b) => Matrix s b -> [[PA]]
+matrixToList m =
+  let size = fromIntegral $ natVal $ Proxy @s
+  in [ [ lookupEntry (unsafeCoerce i) (unsafeCoerce j) | j <- basis @b size ] | i <- basis @b size ]
+  where
+    lookupEntry i j = fromMaybe zero (lookup (i, j) m)
+
+    zero = head [v | ((_, _), v) <- m] `seq` 0
+
+printMatrix :: forall s b. (Basis b, KnownNat s) => Matrix s b -> IO ()
+printMatrix m = putStrLn $ concatMap (intercalate "\t" . (\s -> s ++ ["\n"])) listOfStr
+  where
+    listOfStr = fmap showPA <$> matrixToList m

@@ -7,6 +7,7 @@ module Main(main) where
 import Quant
 import Control.Monad
 import Data.Proxy (Proxy(..))
+import Unsafe.Coerce
 
 -------------------------------------------------------------------
 
@@ -100,10 +101,9 @@ testDeutsch f = do
 
 ------------------------------------------------------------------
 
-deutschJ :: forall n a. Partition (n-1) 1 n => QBitAct n a -> QBitAct n (Vec (n-1) Bit)
+deutschJ :: forall n a. Partition (n-1) 1 n => ValidSelector '[n] n => QBitAct n a -> QBitAct n (Vec (n-1) Bit)
 deutschJ uf = do
-  app (SNat @n :- SNil) x
-  -- appAll_ @(n-1) qid ||| x
+  app [qb|@n|] x
   appAll_ h
   _ <- uf
   appAll_ @(n-1) h ||| qid
@@ -140,6 +140,7 @@ teleport = do
 testTeleport :: IO ()
 testTeleport = do
   m <- [mkq|0 0 0|]
+  putStrLn "\n\n----Teleport test----"
   runQ (app [qb|1|] (x >> h) >> teleport) m
   printQ m
 
@@ -161,14 +162,16 @@ grover slCounter zf = do
 testGrover :: IO ()
 testGrover = do
   putStrLn "\n\n----Grover test----"
-  outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|] ))
+  outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|]))
   print outcome
-
--------
-
-clone :: QBitAct 2 ()
-clone = liftQ (\[vec|a b|] -> [vec|(lnegate b) a|])
 
 main :: IO ()
 main = do
-  print "aa"
+  m <- [mkq|5*0|]
+  runQ (qft (0 :+ 1)) m
+
+  printQ m
+  --matrixBuilder @2 @Bit (\j k -> fromIntegral (j+k) :+ 0)
+  -- testGrover 
+  -- testTeleport
+  -- testDeutschJ (\_ a -> a)

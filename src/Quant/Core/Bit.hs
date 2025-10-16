@@ -27,5 +27,5 @@ toBool O = False
 toBool I = True
 
 lnegate :: Bit %1 -> Bit
-lnegate O = 1 
-lnegate I = 0 
+lnegate O = 1
+lnegate I = 0

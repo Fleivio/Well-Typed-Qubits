@@ -20,13 +20,12 @@ module QAct.QBitAct(
   , measureBool
   , measureNBool
   , parallel
-  -- , controlledAct
-  -- , controlled
   , toState
   , rx
   , ry
   , rz
-  , cnotn) where
+  , cnotn
+  , qft) where
 
 import QAct.QAct
 import Unsafe.Coerce
@@ -34,6 +33,7 @@ import Control.Monad
 import Quoters.SListQuoter
 import Quoters.MatrixQuoter
 import Quoters.BitQuoter (vec)
+import Data.Proxy
 
 type QBitAct s a = QAct Bit s a
 
@@ -154,3 +154,19 @@ rz angle = qActMatrix [matrix|
   0 =[exp(0 :+ -angle/2)]=> 0
   1 =[exp(0 :+ angle/2)]=> 1
 |]
+
+natValI :: forall n. KnownNat n => Int
+natValI = fromIntegral $ natVal $ Proxy @n
+
+qft :: forall n. KnownNat n => PA -> QBitAct n ()
+qft w = do
+  let 
+    n = 2 ^ natValI @n
+  let a = [matrixF|
+    \j k -> w ^ (j * k) / sqrt (n :+ 0)
+  |]
+
+  -- liftIO $ printMatrix a
+
+  qActMatrix a
+

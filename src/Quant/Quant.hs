@@ -2,6 +2,7 @@
 module Quant(module QAct.QBitAct, module QAct.QAct, module Quoters.NatLabel, module List.Vec, module Quoters.BitQuoter,
  module Quoters.SListQuoter, module GHC.TypeLits, module Quoters.MatrixQuoter) where
 
+
 import QAct.QBitAct
 import QAct.QAct
 import List.Vec

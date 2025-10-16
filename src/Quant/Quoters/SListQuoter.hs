@@ -31,5 +31,6 @@ parseInts (x:xs)
   | all isNumber x = do
     let n = read x :: Integer
     [| SNat @($(litT (numTyLit n))) :- $(parseInts xs) |]
+  | head x == '@' = [| SNat @($(varT $ mkName (tail x))) :- $(parseInts xs)  |] 
   | otherwise = [| ($(varE (mkName x))) :- $(parseInts xs) |] 
 

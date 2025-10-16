@@ -5,6 +5,7 @@ module List.SList(
   , module GHC.TypeLits
   , type (<++>)
   , ValidSelector
+  , Partition
   , sListRange
   , sListConcat) where
 
@@ -45,7 +46,7 @@ type family Length (as :: [k]) :: Natural where
   Length '[] = 0
   Length (a ': as) = 1 + Length as
 
-type Elem :: Natural -> [Natural] -> Bool
+type Elem :: k -> [k] -> Bool
 type family Elem a as
  where
   Elem a '[]      = 'False
@@ -85,3 +86,8 @@ type family NoZeroCheck (xs :: [Natural]) :: Constraint
 type ValidSelector :: [Natural] -> Natural -> Constraint
 type ValidSelector xs n
   = (NoCloningCheck xs, BoundCheck n xs, NoZeroCheck xs)
+
+-------------------------------------------------------------------
+
+type Partition (n :: Natural) (m :: Natural) (k :: Natural) 
+  = (KnownNat n, KnownNat m, KnownNat k, n + m ~ k, m + n ~ k)

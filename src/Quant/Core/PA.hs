@@ -12,10 +12,18 @@ import Text.Printf
 type PA = Complex Double
 
 showPA :: PA -> String
-showPA pa
-  | imagPart pa < 0 = printf "(%.2f %.2f⋅i)" (realPart pa) (imagPart pa)
-  | imagPart pa > 0 = printf "(%.2f + %.2f⋅i)" (realPart pa) (imagPart pa)
-  | otherwise       = printf "%.2f" (realPart pa)
+showPA pa = realp <> connect <> imagp
+  where 
+    connect
+      | null realp || null imagp = ""
+      | imagPart pa < 0 = "-"
+      | otherwise = "+"
+    realp
+      | realPart pa == 0 = ""
+      | otherwise = printf "%.3f" (realPart pa)
+    imagp
+      | imagPart pa == 0 = ""
+      | otherwise        = printf "%.3f_i" (imagPart pa)
 
 showPAMultiplicative :: PA -> String
 showPAMultiplicative pa =

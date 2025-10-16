@@ -1,11 +1,13 @@
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module Quoters.MatrixQuoter(
-  matrix) where
+  matrix, matrixF) where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 import Language.Haskell.Meta.Parse (parseExp)
 
 import Quoters.BitQuoter (parseNList)
+import Data.Char (isDigit)
 
 matrix :: QuasiQuoter
 matrix = QuasiQuoter
@@ -20,10 +22,14 @@ isPower2 = ((==) @Double <*> (fromInteger . round)) . logBase 2 . fromIntegral
 
 parseMatrix :: String -> Q Exp
 parseMatrix input
-  | isPower2 (length validLines) && length validLines > 1 = parseEntries validLines
+  | isPower2 (length vv) && length vv > 1 = parseEntries vv
   | otherwise = error "Number of lines must be a power of two"
-  where
-    validLines = filter (not . all (`elem` [' ', '\t'])) $ filter (not.null) $ lines input
+  where vv = validLines input
+
+validLines :: String -> [String]
+validLines inp = filter (not . all (`elem` [' ', '\t'])) $ filter (not.null) $ lines inp
+
+  
 
 parseEntries :: [String] -> Q Exp
 parseEntries inputs = [|$buildindList |]
@@ -49,3 +55,25 @@ parseEntries inputs = [|$buildindList |]
 
     tupleEntries = zip3 parsedEntries parsedOuts parsedDeltas
     buildindList = foldr (\(e,o,d) acc -> [| (($e, $o), $d) : $acc |]) [|[]|] tupleEntries
+
+----------------------------------------------------------
+
+matrixF :: QuasiQuoter
+matrixF = QuasiQuoter
+  { quoteExp  = parseMatrixF
+  , quotePat  = undefined
+  , quoteType = undefined
+  , quoteDec  = undefined
+  }
+
+parseMatrixF :: String -> Q Exp
+parseMatrixF input = do
+  let [f] = validLines input
+      -- n' = filter (/= ' ') n 
+      -- sizeExpr = if all isDigit n'
+      --            then [|SNat @($(litT (numTyLit (read n'))))|]
+      --            else [|SNat @($(varT $ mkName n'))|] :: Q Exp
+      funcExpr = case parseExp f of
+                 Left e -> error e 
+                 Right c -> return c
+  [|matrixBuilder $funcExpr|]

@@ -86,3 +86,4 @@ mkq = QuasiQuoter
 parseVirt :: String -> Q Exp
 parseVirt str =
     [| mkQ [ ($(parseNList str), 1) ] |]
+
