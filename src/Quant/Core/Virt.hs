@@ -11,7 +11,8 @@ module Core.Virt
   , measureVirtAll
   , unsafeSelectQInt
   , getQV
-  , unsafeFromQV) where
+  , unsafeFromQV
+  , printQSInt) where
 
 import List.Vec
 import List.SList
@@ -36,7 +37,7 @@ mkQ list = do
 unsafeFromQV :: forall n a. (Basis a) => QV a -> Int -> IO (Virt a n)
 unsafeFromQV qv size = do
   qr <- newIORef qv
-  return $ Virt qr [1..size] 
+  return $ Virt qr [1..size]
 
 getQV :: Virt a n -> IO (QV a)
 getQV (Virt qr _) = readIORef qr
@@ -48,8 +49,16 @@ printQ (Virt qr _) = do
 printQS :: (Basis a, Show a) => Virt a acs -> IO ()
 printQS (Virt qr acs) = do
   qv <- readIORef qr
-  let b = mkQV [(($ l) . flip (!!) <$> map pred acs, p) | (l, p) <- getEntries qv]
+  let b = mkQV [((!!) l <$> map pred acs, p) | (l, p) <- getEntries qv]
   print b
+  putStrLn ""
+
+printQSInt :: Virt Bit acs -> IO ()
+printQSInt (Virt qr acs) = do
+  qv <- readIORef qr
+  let b = mkQV [((!!) l <$> map pred acs, p) | (l, p) <- getEntries qv]
+  putStrLn $ showQVInt b
+  putStrLn ""
 
 unsafeSelectQInt :: forall n m a. [Int] -> Virt a n -> Virt a m
 unsafeSelectQInt sl (Virt qr acs) = Virt qr [acs !! pred ix | ix <- sl]

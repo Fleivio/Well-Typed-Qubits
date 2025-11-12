@@ -50,7 +50,6 @@ type QAct b s a = ReaderT (Virt b s) IO a
 
 type Matrix s b = [((Vec s b, Vec s b), PA)]
 
-
 runQ :: QAct b s a -> Virt b s -> IO a
 runQ = runReaderT
 
@@ -152,7 +151,7 @@ a1 ||| a2 = (a1 <||| a2) >> return ()
 
 liftQ :: forall a n. (KnownNat n, Basis a) => (Vec n a %1 -> Vec n a) -> QAct a n ()
 liftQ op = qActMatrix $ [unsafeCoerce ((a, op (unsafeCoerce a)), 1)
-                  | a <- basis @a $ natVal (Proxy @n)]
+                        | a <- basis @a $ natVal (Proxy @n)]
 
 --[CONTROLLS]--------------------------------------------------------
 
@@ -160,22 +159,22 @@ lmap :: (a %1 -> a) -> Vec n a %1 -> Vec n a
 lmap _ VNil = VNil
 lmap f (v:>vs) = f v :> lmap f vs
 
-control :: forall a n m k. (Partition n m k, Show a, Basis a)
-  => (Vec n a -> Bool) -> (Vec m a %1 -> Vec m a) -> QAct a k ()
+control :: forall a control target total. (Partition control target total, Basis a)
+  => (Vec control a -> Bool) -> (Vec target a %1 -> Vec target a) -> QAct a total ()
 control enable f
   = do
   let op = [((a ++ b, a ++ unsafeCoerce (unsafeCoerce f $ unsafeCoerce b)), 1)
-            | a <- basis @a $ natVal (Proxy @n)
+            | a <- basis @a $ natVal (Proxy @control)
             , enable $ unsafeCoerce a
-            , b <- basis @a $ natVal (Proxy @m)]
+            , b <- basis @a $ natVal (Proxy @target)]
           ++
           [((a ++ b, a ++ b), 1)
-            | a <- basis @a $ natVal (Proxy @n)
+            | a <- basis @a $ natVal (Proxy @control)
             , not . enable $ unsafeCoerce a
-            , b <- basis @a $ natVal (Proxy @m)] :: [(([a],[a]), PA)]
-  qActMatrix (unsafeCoerce op :: Matrix k s)
+            , b <- basis @a $ natVal (Proxy @target)] :: [(([a],[a]), PA)]
+  qActMatrix (unsafeCoerce op :: Matrix total s)
 
-controlM :: forall a n m k. (Partition n m k, Show a, Basis a)
+controlM :: forall a n m k. (Partition n m k, Basis a)
   => (Vec n a -> Bool) -> Matrix m a -> QAct a k ()
 controlM enable f = qActMatrix $ controlled enable f
 
@@ -196,7 +195,8 @@ controlled enable op =
                  , t <- basis @a (natVal (Proxy @targs)) ]
   in unsafeCoerce $ change ++ unchange
 
-phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) => (Vec n b -> Bool) -> QAct b n ()
+phaseOracle :: forall b n. (Basis b, Show b, KnownNat n) 
+  => (Vec n b -> Bool) -> QAct b n ()
 phaseOracle f = do
   let op = mkOP @b
           [ ((b,b), if f $ unsafeCoerce b then -1 else 1)
@@ -204,7 +204,7 @@ phaseOracle f = do
   vv <- ask
   liftIO $ appV op vv
 
-orc :: forall n a. (KnownNat n, Show a, Basis a)
+orc :: forall n a. (KnownNat n, Basis a)
   => (Vec n a -> Bool) -> (Vec n a %1 -> Vec n a) -> QAct a n ()
 orc enable f = do
   let op1 = [((unsafeCoerce a, r), 1)
@@ -215,8 +215,8 @@ orc enable f = do
             [((unsafeCoerce a, unsafeCoerce a), 1)
             | a <- basis @a $ natVal (Proxy @n)
             , not $ enable $ unsafeCoerce a] :: [((Vec n a, Vec n a), PA)]
-  liftIO $ print op1
-  liftIO $ print op2
+  -- liftIO $ print op1
+  -- liftIO $ print op2
   qActMatrix $ unsafeCoerce (op1 ++ op2)
 
 

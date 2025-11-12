@@ -13,6 +13,7 @@ module Core.QV
   , getEntries
   , module Core.PA
   , module Core.Basis
+  , showQVInt
   ) where
 
 import Core.Basis
@@ -39,12 +40,30 @@ instance Basis a => Semigroup (QV a) where
 
 instance Show a => Show (QV a) where 
   show qv =
-    intercalate " \n " $ do
+    intercalate " \n" $ do
       (a, pa) <- toList $ qvMap qv
       return
         $ case pa of
             0 -> mempty
             _ -> showPAMultiplicative pa ++ showKet a
+
+showQVInt :: QV Bit -> String
+showQVInt qv = 
+  intercalate " \n" $ do
+    (a, pa) <- toList $ qvMap qv
+    return
+      $ case pa of
+          0 -> mempty
+          _ -> showPAMultiplicative pa ++ " -- " ++ showInt a
+
+showInt :: [Bit] -> String
+showInt = show . go 0
+  where
+    go :: Int -> [Bit] -> Int
+    go acc [] = acc
+    go acc (b:bs) =
+      let acc' = acc*2 + if b == 1 then 1 else 0
+      in go acc' bs
 
 instance Eq a => Eq (QV a) where
   QV n1 a == QV n2 b = n1 == n2 && a == b

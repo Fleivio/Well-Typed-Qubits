@@ -1,6 +1,6 @@
-module List.Vec(Vec(..), unsafeVec, vecToList) where
+module List.Vec(Vec(..), unsafeVec, vecToList, vecToInt) where
 
-
+import Core.Bit
 import Data.Kind
 import GHC.TypeLits
 
@@ -17,6 +17,15 @@ instance Functor (Vec n) where
 
 vecToList :: Vec n a -> [a]
 vecToList = unsafeCoerce
+
+vecToInt :: forall n. Vec n Bit -> Int
+vecToInt = go 0
+  where
+    go :: Int -> Vec m Bit -> Int
+    go acc VNil = acc
+    go acc (b :> bs) =
+      let acc' = acc*2 + if b == 1 then 1 else 0
+      in go acc' bs
 
 unsafeVec :: forall n a. KnownNat n => [a] -> Vec n a
 unsafeVec = unsafeCoerce

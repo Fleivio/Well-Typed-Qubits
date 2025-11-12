@@ -29,8 +29,6 @@ parseMatrix input
 validLines :: String -> [String]
 validLines inp = filter (not . all (`elem` [' ', '\t'])) $ filter (not.null) $ lines inp
 
-  
-
 parseEntries :: [String] -> Q Exp
 parseEntries inputs = [|$buildindList |]
   where
@@ -69,10 +67,6 @@ matrixF = QuasiQuoter
 parseMatrixF :: String -> Q Exp
 parseMatrixF input = do
   let [f] = validLines input
-      -- n' = filter (/= ' ') n 
-      -- sizeExpr = if all isDigit n'
-      --            then [|SNat @($(litT (numTyLit (read n'))))|]
-      --            else [|SNat @($(varT $ mkName n'))|] :: Q Exp
       funcExpr = case parseExp f of
                  Left e -> error e 
                  Right c -> return c

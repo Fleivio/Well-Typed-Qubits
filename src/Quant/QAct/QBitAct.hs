@@ -25,7 +25,8 @@ module QAct.QBitAct(
   , ry
   , rz
   , cnotn
-  , qft) where
+  , qft
+  , sampleInt) where
 
 import QAct.QAct
 import Unsafe.Coerce
@@ -34,6 +35,7 @@ import Quoters.SListQuoter
 import Quoters.MatrixQuoter
 import Quoters.BitQuoter (vec)
 import Data.Proxy
+import Control.Monad.Reader
 
 type QBitAct s a = QAct Bit s a
 
@@ -103,18 +105,21 @@ t = p (pi/8)
 cnot :: QBitAct 2 ()
 cnot = control (== [vec|1|]) (\[vec|x|] -> [vec|(lnegate x)|])
 
-toffoli :: QBitAct 3 ()
-toffoli = control (== [vec|1 1|]) (\[vec|x|] -> [vec|(lnegate x)|])
+cnotn :: forall control total. Partition control 1 total => QBitAct total ()
+cnotn = control (== [vec|control*1|]) (\[vec|x|] -> [vec|(lnegate x)|])
 
-cnotn :: forall k l n. Partition k l n 
-      => QBitAct n ()
-cnotn = control (== [vec|k*1|]) 
-        (\[vec|x|] -> [vec|(lnegate x)|])
+toffoli :: QBitAct 3 ()
+toffoli = cnotn @2 @3
 
 entangle :: QBitAct 2 ()
 entangle = do
   app [qb|1|] h
-  app [qb|1 2|] cnot
+  cnot
+
+sampleInt :: QBitAct s ()
+sampleInt = do
+  virt <- ask
+  liftIO $ printQSInt virt
 
 cz :: QBitAct 2 ()
 cz = qActMatrix [matrix|
@@ -162,11 +167,8 @@ qft :: forall n. KnownNat n => PA -> QBitAct n ()
 qft w = do
   let 
     n = 2 ^ natValI @n
-  let a = [matrixF|
-    \j k -> w ^ (j * k) / sqrt (n :+ 0)
-  |]
-
-  -- liftIO $ printMatrix a
-
+    a = [matrixF|
+        \j k -> w ^ (j * k) / sqrt (n :+ 0)
+    |]
   qActMatrix a
 

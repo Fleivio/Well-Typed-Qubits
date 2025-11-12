@@ -26,7 +26,6 @@ testEntangle = do
 
 -------------------------------------------------------------------
 
-
 sqrtNot :: QBitAct 1 ()
 sqrtNot = h >> s >> h
 
@@ -39,7 +38,7 @@ testSqrtNot = do
 ------------------------------------------------------------------
 adder :: QBitAct 5 ()
 adder = do
-  let a = #1; b = #2; sum = #3; cin = #4; cout = #5; 
+  let a = #1; b = #2; sum = #3; cin = #4; cout = #5;
 
   app [qb|a sum|] cnot
   app [qb|b sum|] cnot
@@ -157,21 +156,72 @@ grover slCounter zf = do
     )
   measureAll
   where
-    it = ceiling $ (pi/4 :: Double) * sqrt((fromIntegral . natVal $ Proxy @n) / fromIntegral slCounter )  
+    it = floor $ (pi/4 :: Double) * sqrt (2 ** (fromIntegral.natVal $ Proxy @n) / fromIntegral slCounter )
+
+isPerfectSquare :: Int -> Bool
+isPerfectSquare n
+  | n < 0     = False
+  | otherwise = r * r == n
+  where
+    r = floor (sqrt (fromIntegral n :: Double))
 
 testGrover :: IO ()
 testGrover = do
   putStrLn "\n\n----Grover test----"
-  outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|]))
-  print outcome
+  -- outcome <- [mkq|0 0 0|] >>= runQ (grover 1 $ phaseOracle ( == [vec|0 1 0|]))
+  outcome <- [mkq|0 0 0 0 0 0|] >>= runQ (grover 8 $ phaseOracle (isPerfectSquare . vecToInt))
+  print $ vecToInt outcome
+
+entangle' :: QBitAct 2 ()
+entangle' = do
+  app [qb|1|] h
+  sample
+  app [qb|1 2|] cnot
+  sample
+
+appLast4Twice :: QBitAct 1 () -> QBitAct 4 ()
+appLast4Twice op = do
+  appLast op
+  appLast op
+
+appLast :: Partition 1 (n-1) n => QBitAct 1 () -> QBitAct n ()
+appLast op = do
+  appAll qid ||| op
+
+appFirstAndLast :: Partition 1 (n-1) n => QBitAct 1 () -> QBitAct n ()
+appFirstAndLast  op = do
+  appAll_ op ||| qid
+  qid ||| appAll_ op
+
+---Graph
+
+data Color = Red | Blue | Green | Yellow deriving (Eq, Show)
+type Graph = [(Int,Int)]
+
+vecToColors :: Vec n Bit -> [Color]
+vecToColors (a:>b:>rest) =
+  (case (a,b) of
+    (0,0) -> Red
+    (0,1) -> Blue
+    (1,0) -> Green
+    (1,1) -> Yellow) : vecToColors rest
+vecToColors _ = []
+
+colorOracle :: Graph -> Vec n Bit -> Bool
+colorOracle edgs bits = 
+  let colors = vecToColors bits
+  in all (\(u,v) -> colors !! u /= colors !! v) edgs
+
+graph :: Graph
+graph = [(0,2), (0,1), (2,3), (1,3), (1,2)]
+
+testGroverGraph :: IO ()
+testGroverGraph = do
+  putStrLn "\n\n----Grover graph----"
+  mem <- [mkq|0 0 0 0 0 0 0 0|] 
+  outcome <- runQ (grover 48 $ phaseOracle (colorOracle graph)) mem
+  -- outcome <- runQ (appAll_ h >> phaseOracle (colorOracle graph) >> sample) mem
+  print $ vecToColors outcome
 
 main :: IO ()
-main = do
-  m <- [mkq|5*0|]
-  runQ (qft (0 :+ 1)) m
-
-  printQ m
-  --matrixBuilder @2 @Bit (\j k -> fromIntegral (j+k) :+ 0)
-  -- testGrover 
-  -- testTeleport
-  -- testDeutschJ (\_ a -> a)
+main = testGroverGraph
