@@ -22,7 +22,12 @@ cabal run
 ```
 .
 ├── app
-│   └── Main.hs                 # Executable and Examples
+│   ├── Main.hs                  # Executable and Examples
+│   ├── Deutsch.hs               # Deutsch-Jesza Algorithm
+│   ├── Grover.hs                # Grover Algorithm
+│   └── Teleport.hs              # Teleport Algorithm 
+│  
+│  
 ├── src
 │   └── Quant
 │       ├── Core
@@ -47,7 +52,3 @@ cabal run
 │           ├── NatLabel.hs      # Overloaded Labels for Naturals
 │           └── SListQuoter.hs   # Quotations for SList
 ```
-
-## Further Work
-
-- [ ] Implement writer monad to allow history tracking of operations.

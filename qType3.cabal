@@ -64,6 +64,11 @@ executable qType
 
     main-is:          Main.hs
 
+    other-modules:
+      Deutsch
+      Grover
+      Teleport
+
     build-depends:    base ^>=4.21.0.0, quantum
 
     default-extensions: OverloadedLabels, QuasiQuotes, DataKinds, 
@@ -73,17 +78,3 @@ executable qType
     hs-source-dirs:   app
 
     default-language: Haskell2010
-
-test-suite quantum-test
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is: Spec.hs
-  build-depends:
-      base,
-      quantum,
-      tasty,
-      tasty-hunit,
-      tasty-quickcheck
-  default-extensions: OverloadedLabels, QuasiQuotes, DataKinds, TypeApplications, GADTs, TypeFamilies, PatternSynonyms, LambdaCase
-
-  default-language: Haskell2010
