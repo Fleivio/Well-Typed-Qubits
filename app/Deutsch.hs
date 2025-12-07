@@ -9,7 +9,7 @@ deutschJ uf = do
   _ <- uf
   appAll_ h ||| qid
   (output, _) <- measureAll <||| qid
-  return outpu
+  return output
 
 runDeutsch :: (Bool -> Bool -> Bool) -> IO ()
 runDeutsch f = do
